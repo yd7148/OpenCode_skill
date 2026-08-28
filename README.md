@@ -2,6 +2,8 @@
 
 OpenCode 本機 Skills 收藏庫。所有 skill 皆為 MIT 授權，適用於 opencode agents。
 
+> 📖 每支 skill 的完整功能、適用時機、運作流程與產出，請參閱 **[SKILLS.md](SKILLS.md)**。
+
 ## 目錄
 
 | Skill | 用途 |
