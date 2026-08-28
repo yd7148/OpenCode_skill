@@ -16,6 +16,7 @@ OpenCode 本機 Skills 收藏庫。所有 skill 皆為 MIT 授權，適用於 op
 | `video2text` | 分析錄影影片 → 雙語 Markdown 報告 + 關鍵幀 PDF |
 | `yt-batch-download` | 批次下載 YouTube 影片（1080p） |
 | `yt-upload` | 透過 Playwright 上傳並公開發布 YouTube 影片 |
+| `tts` | 用 edge-tts 將文字轉成繁體中文等語音檔（mp3） |
 
 ## 安裝
 

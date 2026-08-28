@@ -17,6 +17,7 @@
 | [video2text](#6-video2text--影片分析管線) | 影片畫面 OCR × 語音 Whisper → Markdown + 關鍵幀 PDF |
 | [yt-batch-download](#7-yt-batch-download--youtube-批次下載) | 批次下載 1080p YouTube 影片 |
 | [yt-upload](#8-yt-upload--youtube-影片上傳發布) | 透過 Playwright 上傳並公開發布 YouTube 影片 |
+| [tts](#9-tts--文字轉語音) | 用 edge-tts 將文字轉成繁體中文等語音檔 |
 
 ---
 
@@ -219,6 +220,37 @@
 6. 擷取並驗證影片連結（`https://youtu.be/VIDEO_ID`）
 
 **產出**：公開可觀看的 YouTube 影片連結，含詳細的標題/說明/標籤設定
+
+**[回到目錄](#目錄)**
+
+---
+
+## 9. tts — 文字轉語音
+
+**用途**：使用 **Microsoft Edge 的雲端神經語音**（`edge-tts`）將文字轉成高品質語音檔（.mp3）。不需本機語音模型，支援繁體中文（正體）、簡體中文、粵語與多國語言與多種聲音，可調整語速/音量/音調，並可輸出字幕。
+
+**適用時機**：使用者要求「文字轉語音」、「TTS」、「產出語音檔」、「文字變成聲音」、「生成旁白 / voiceover 音檔」。
+
+**前置需求**：
+- Python 3 `edge-tts`（`py -3 -m pip install edge-tts`）
+- 網路連線（呼叫微軟雲端 `speech.platform.bing.com`）
+- **本機需帶 proxy**：`--proxy $env:HTTPS_PROXY`
+
+**繁體中文聲音**：`zh-TW-HsiaoYuNeural`（女）、`zh-TW-HsiaoChenNeural`（女）、`zh-TW-YunJheNeural`（男）；另有簡中 `zh-CN-*`、粵語 `zh-HK-*`、英語 `en-US-*` 等。
+
+**基本用法**：
+```
+py -m edge_tts --voice "zh-TW-HsiaoYuNeural" --text "你好。" --write-media "out.mp3" --proxy $env:HTTPS_PROXY
+```
+長文稿用 `--file "text.txt"`（UTF-8）。語速/音調負值需用 `--rate=-10%`、`--pitch=-10Hz` 等號形式。
+
+**重要陷阱**：
+- **一定要帶 `--proxy`**，否則 `socket.gaierror: getaddrinfo failed`（Fortinet proxy 環境）
+- 負值參數用 `=` 形式，否則 argparse 報 `expected one argument`
+- 需網路，離線不可用
+- 專為 HyperFrames 影片配音可改走 `media-use` skill
+
+**產出**：`<名稱>.mp3`（語音檔），選用 `<名稱>.srt`（字幕）
 
 **[回到目錄](#目錄)**
 
