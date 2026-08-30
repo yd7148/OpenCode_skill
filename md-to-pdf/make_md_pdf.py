@@ -6,15 +6,33 @@ sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 from PIL import Image, ImageDraw, ImageFont
 
-SRC = r"D:\80-Opnecode\Projects\2026_06_playwirght\除苔蘚藥劑配方說明.md"
-OUT = r"D:\80-Opnecode\Projects\2026_06_playwirght\除苔蘚藥劑配方說明.pdf"
+SRC = sys.argv[1] if len(sys.argv) > 1 else r"D:\80-Opnecode\Projects\2026_06_playwirght\除苔蘚藥劑配方說明.md"
+OUT = sys.argv[2] if len(sys.argv) > 2 else os.path.splitext(SRC)[0] + ".pdf"
 
 W, H = 1240, 1754
 M_L, M_R, M_T, M_B = 100, 100, 110, 110
 CW = W - M_L - M_R
 
-FONT_R = r"C:\Windows\Fonts\msjh.ttc"
-FONT_B = r"C:\Windows\Fonts\msjhbd.ttc"
+def find_font(*paths):
+    for p in paths:
+        if os.path.exists(p):
+            return p
+    return paths[-1]
+
+FONT_R = find_font(
+    r"C:\Windows\Fonts\msjh.ttc",
+    "/System/Library/Fonts/STHeiti Medium.ttc",
+    "/System/Library/Fonts/PingFang.ttc",
+)
+FONT_B = find_font(
+    r"C:\Windows\Fonts\msjhbd.ttc",
+    "/System/Library/Fonts/STHeiti Medium.ttc",
+    r"C:\Windows\Fonts\msjh.ttc",
+)
+FONT_CODE = find_font(
+    r"C:\Windows\Fonts\consola.ttf",
+    "/System/Library/Fonts/Menlo.ttc",
+)
 
 def font(path, size):
     return ImageFont.truetype(path, size)
@@ -24,7 +42,7 @@ F_H2 = font(FONT_B, 32)
 F_H3 = font(FONT_B, 26)
 F_BODY = font(FONT_R, 22)
 F_SMALL = font(FONT_R, 19)
-F_CODE = font(r"C:\Windows\Fonts\consola.ttf", 21)
+F_CODE = font(FONT_CODE, 21)
 F_CODE_CJK = font(FONT_R, 20)
 F_TITLE = font(FONT_B, 52)
 
