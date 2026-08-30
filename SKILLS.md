@@ -22,6 +22,10 @@
 | [github-skill-sync](#11-github-skill-sync--本機-github-skills-同步) | 雙向同步本機 skills 與本 GitHub 收藏庫 |
 | [webwright](#12-webwright--瀏覽器-agent) | code-as-action 瀏覽器 agent（Playwright 開 Firefox） |
 | [web-tools](#13-web-tools--本機網頁工具環境) | 本機 Crawl4AI / Webwright 環境筆記 |
+| [pdf-exam-extractor](#14-pdf-exam-extractor--考題pdf擷取與ocr) | 考題 PDF 逐題裁剪成圖 + EasyOCR 轉 Markdown |
+| [taipower-exam-solver](#15-taipower-exam-solver--國營事業考題解題) | 國營事業招考 PDF 考題、官方解答與逐步解題 |
+| [takeout-exif-merge](#16-takeout-exif-merge--google-相簿-exif-合併) | 將 Takeout JSON EXIF 合併回同名媒體檔 |
+| [video-class-pipeline](#17-video-class-pipeline--課程影片分析管線) | 課程影片批式分析（OCR × Whisper × 關鍵幀 PDF）與編輯 |
 
 ---
 
@@ -346,6 +350,125 @@ py -m edge_tts --voice "zh-TW-HsiaoYuNeural" --text "你好。" --write-media "o
 - **Crawl4AI**：`~/web-tools/crawl4ai/.venv/bin/python`（Python 3.12），抓網頁轉乾淨 markdown。用 `AsyncWebCrawler`/`SyncWebCrawler`。
 - **Webwright**：`~/web-tools/Webwright`，python env `~/web-tools/webwright-python/.venv`。
 - Playwright 瀏覽器路徑須設 `PLAYWRIGHT_BROWSERS_PATH=/Users/4pins/Library/Caches/ms-playwright`。
+
+**[回到目錄](#目錄)**
+
+---
+
+## 14. pdf-exam-extractor — 考題 PDF 擷取與 OCR
+
+**用途**：從考題 PDF（如國營事業招考）中逐一擷取每道題目，把每題裁剪成獨立圖片、執行 OCR，並輸出每題的 Markdown 檔。
+
+**適用時機**：使用者要求「擷取考題 PDF」、「逐題 OCR」、「把每題裁剪成圖片」、處理國營事業招考考卷（台電/中油/台水/台糖）。
+
+**前置需求**（Windows）：
+- Python：pymupdf、pdfplumber、easyocr、opencv-python、Pillow
+- GPU 加速：`torch`（CUDA）
+- 中文/非 ASCII 路徑會破壞 `cv2.imread` → 一律用 `np.fromfile` + `cv2.imdecode` 或 PIL
+
+**運作流程**：
+1. 用 pdfplumber 擷取文字座標（`x_tolerance`/`y_tolerance` 因版面調整）
+2. 以正則比對題號（`1.`～`50.`）定位每題起點，過濾頁碼、選項標籤等雜訊
+3. 用 PyMuPDF 將每頁轉成 2x 縮放 PNG
+4. 依題號排序計算裁剪邊界（含上方 padding），換頁時避免題號重複覆寫
+5. 用 EasyOCR 逐題辨識並輸出 Markdown（以 UTF-8 包裝 stdout 避免中文亂碼）
+
+**產出**：`提取結果/` 下 `q01.md ~ q50.md`、`q01.png ~ q50.png`、`summary.md` 題目索引表
+
+**注意**：pdfplumber 為 72 DPI 座標，裁剪 2x 圖時 y 座標需乘 2；電路圖需保留圖檔，OCR 無法還原圖形內容。
+
+**[回到目錄](#目錄)**
+
+---
+
+## 15. taipower-exam-solver — 國營事業考題解題
+
+**用途**：端對端處理國營事業招考（台電/中油/台水/台糖）考題 PDF：用 pymupdf 擷取題目、從台電官網搜尋官方解答、並產出逐步詳解（電路學、電子學、基本電學等）。
+
+**適用時機**：使用者要求「處理台電考題 PDF」、「解電路學/電子學題目」、「查官方答案」、「產出完整解答文件」。
+
+**前置需求**：
+- Python `pymupdf`（fitz）
+- 網路（存取台電官方解答 PDF）
+
+**運作流程**：
+1. 以 pymupdf 渲染 PDF 頁面為圖片並擷取文字（`Matrix(3,3)` 提高清晰度）
+2. 到台電官網 `https://www.taipower.com.tw/2289/2544/2554/2556/simpleList` 搜尋官方試題/解答 PDF
+3. 讀取解答 PDF（格式：每題以 `[X]` 開頭，X 為 A/B/C/D）
+4. 以領域知識逐步解題；電路圖題目先從元件標籤重建電路，再搭配渲染圖片
+5. 輸出完整解答文件
+
+**產出**：`提取結果_v4/完整解答.md`（含題目、選項、答案與詳解）
+
+**注意**：pymupdf 無法讀加密 PDF；電路圖為向量圖形，文字擷取會遺漏接線拓撲，需以渲染圖為參考；中文＋數學符號的 OCR 品質不穩，建議與網路來源交叉比對。
+
+**[回到目錄](#目錄)**
+
+---
+
+## 16. takeout-exif-merge — Google 相簿 EXIF 合併
+
+**用途**：將 Google 相簿 Takeout 的 `*.jpg.supplemental-metadata.json`（含 `(N)` 計數變體）側車 JSON 的 EXIF 資訊就地（in-place）寫回對應的圖片/影片檔，使用 ExifTool。同步腳本見 `scripts/merge_exif.py`。
+
+**適用時機**：使用者要求「把 Takeout JSON EXIF 寫入同名影片圖片」、「處理 Google 相簿 Takeout 資料夾」、「產出 EXIF 合併成果報告」。
+
+**前置需求**：
+- Python 3 + ExifTool（winget `OliverBetz.ExifTool`）
+- PowerShell 需設 `PYTHONIOENCODING=utf-8`，避免 CP950 中文亂碼；`Set-Content` 會寫 UTF-8 BOM，回讀時需去除
+
+**關鍵要點**：
+- 檔名配對：`foo.jpg.supplemental-metadata.json` ↔ `foo.jpg`；`(1)` 計數變體亦有兩種命名形式
+- JSON 鍵：`photoTakenTime`/`creationTime`、`geoData`、`title`、`description`、`people[]`、`favorited`
+- 內容 ≠ 副檔名：`.heic/.png/.arw/.dng` 內實為 JPEG、`.mts/.avi` 內實為 MOV 時，ExifTool 拒絕寫入 → 先偵測 magic bytes，用正確副檔名的暫存複本寫入後再 `os.replace`
+- 結構損壞檔（Truncated SubIFD / Bad SubIFD / Truncated mdat / BMP）：改以 `os.utime` 設定 mtime 保留時間戳
+- 效能：`-stay_open True -@ -` 平行寫入，8 workers 於 ~315k 檔案約 55 分鐘
+
+**運作流程**：
+1. `merge_exif.py build <資料夾> pairs.tsv` 掃描並配對 JSON↔媒體
+2. `merge_exif.py run --exe <ExifTool> --pairs pairs.tsv --workers 8` 平行寫入（progress 檔可續跑）
+3. `merge_exif.py verify` 以 mtime 驗證（mtime == photoTakenTime ±1s 為 `ok`）
+4. 取出 `fail` 清單 → `--retry-from` 重試 → 再驗證
+5. 輸出 Markdown 成果報告（配對/未配對/殘留計數、完整寫入 vs 僅 mtime、損壞類別統計）
+
+**產出**：媒體檔含正確 EXIF/時間/GPS 資訊 + `EXIF合併成果報告.md`
+
+**注意**：時間寫入 `+00:00`，mtime 即 UTC epoch 可用 `os.stat` 驗證；報告統計數字因帳戶而異，需重新計算。
+
+**[回到目錄](#目錄)**
+
+---
+
+## 17. video-class-pipeline — 課程影片分析管線
+
+**用途**：批式處理一系列課程錄影（Google Meet / YouTube 直播畫面），產出可分析的成品（畫面 OCR、Whisper 語音轉錄、逐分鐘交叉比對、關鍵幀 PDF），並支援單次影片編輯（裁黑邊、2 倍速），以 RTX 5080 GPU 編碼。
+
+**適用時機**：使用者要求「分析課程影片」、「處理 YouTube 課程直播錄影」、「畫面 OCR + Whisper 轉錄 + 逐分鐘對照」、「關鍵幀 PDF」、「影片裁切 + 2 倍速」。
+
+**前置需求**（Windows、RTX 5080）：
+- Python venv：torch（CUDA）、whisper、easyocr、opencv-python、Pillow、yt-dlp
+- ffmpeg/ffprobe（winget `yt-dlp.FFmpeg`）
+- NVENC 編碼器：`h264_nvenc`、`hevc_nvenc`、`av1_nvenc`
+
+**運作流程**（Workflow A 批式分析）：
+1. 編輯 `pipeline/videos.py` 填入 `{name, url, id}`
+2. `download_videos.py <idx>` 依序下載（可續跑）；`verify_downloads.py` 驗證
+3. 每支影片 `process_video.py <idx>`：每 10 秒擷幀 → EasyOCR（GPU）→ 音訊 16k → Whisper medium zh（CUDA）→ 逐分鐘 crossref → 關鍵字時間軸報告 → 關鍵幀 PDF
+4. 彙整 `build_summary.py` + `build_all_frames_pdf.py`
+
+**運作流程**（Workflow B 裁黑邊 + 2 倍速）：
+1. 以 ffprobe/OpenCV 量測亮度計算裁切邊界（不可用 `cropdetect` 或不目測）；樣本多時點取多數決
+2. **兩 pass 分開編碼再 mux**：pass 1 僅影片（crop + `setpts=PTS/2` + `fps=30` + NVENC），pass 2 僅音訊（`atempo=2.0` + AAC），再 `-c copy -shortest` 合併——單一 pass 同時含音訊會截斷 AAC 串流
+3. 用 ffprobe 確認兩串流時長皆 ≈ 來源/2，並以影格比對驗證 2x 時序
+
+**關鍵檔案**：`E:\01-Project\2026-07-B-python_ai_tvdi\`（tvdi 課程）與 `E:\01-Project\2026_08_n8n_itri\`（n8n 課程）
+
+**注意**：
+- 中文路徑破壞 `cv2.imread` → 用 `np.fromfile` + `cv2.imdecode`
+- Whisper zh 會對靜音/雜訊以常見套話幻覺 → 用 HALLU 正則過濾（`点赞|打賞|明镜与点点|Amara\.org|谢谢观看|謝謝觀看|訂閱…|字幕…`）
+- GitHub 交叉比對要「零幻覺」：只索引 repo clone 中真實存在的路徑，引用格式 `` `term` → `repo:path` ``
+- 關鍵幀 PDF 為每頁一張圖（使用者偏好），以 raw bytes 數 `/Type /Page` 驗證頁數
+- **絕不** `git add` videos/analysis 輸出（數百 GB），只提交 `pipeline/`、文件與小成品
+- 長時間 GPU 階段（OCR 再接 Whisper）依序執行，勿併行；以 `timeout 7200000` 保護 shell 呼叫
 
 **[回到目錄](#目錄)**
 

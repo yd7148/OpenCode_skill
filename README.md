@@ -21,6 +21,10 @@ OpenCode 本機 Skills 收藏庫。所有 skill 皆為 MIT 授權，適用於 op
 | `github-skill-sync` | 同步本機 skills 與本 GitHub 收藏庫（雙向） | 無（git/rsync/ssh） |
 | `webwright` | 瀏覽器 agent（code-as-action，Playwright 開 Firefox） | Python playwright + Firefox（無 API key） |
 | `web-tools` | 本機網頁工具環境筆記（Crawl4AI / Webwright） | 參考用 |
+| `pdf-exam-extractor` | 考題 PDF 逐題裁剪成圖 + EasyOCR 轉 Markdown | Python：pymupdf、pdfplumber、easyocr、opencv-python |
+| `taipower-exam-solver` | 國營事業招考 PDF 考題、官方解答與逐步解題 | Python `pymupdf` + 台電官網解答 PDF |
+| `takeout-exif-merge` | 將 Google 相簿 Takeout JSON EXIF 合併回同名媒體檔 | Python 3 + ExifTool |
+| `video-class-pipeline` | 課程影片批式分析（OCR × Whisper × 關鍵幀 PDF）與裁切/2倍速 | Python venv：EasyOCR、whisper、opencv + ffmpeg（NVENC） |
 
 ## 安裝
 
@@ -39,6 +43,6 @@ python3 -m venv .venv
 ## 依賴／平台總覽
 
 - **無依賴**：`comsol-analyzer`、`v2t-report-summary`
-- **純 Python（跨平台）**：`taobao-order-extract`（openpyxl）、`md-to-pdf`（Pillow）、`tts`（edge-tts）
-- **需額外系統工具**：`dwg-to-dxf`（ODA Converter）、`video-2x-speed`（ffmpeg）、`yt-batch-download`（ffmpeg + deno）、`yt-upload`（Playwright）
-- **重型機器學習（每個 skill 有專用 venv）**：`video2text`
+- **純 Python（跨平台）**：`taobao-order-extract`（openpyxl）、`md-to-pdf`（Pillow）、`tts`（edge-tts）、`taipower-exam-solver`（pymupdf）
+- **需額外系統工具**：`dwg-to-dxf`（ODA Converter）、`video-2x-speed`（ffmpeg）、`yt-batch-download`（ffmpeg + deno）、`yt-upload`（Playwright）、`takeout-exif-merge`（ExifTool）
+- **重型機器學習（每個 skill 有專用 venv）**：`video2text`、`pdf-exam-extractor`、`video-class-pipeline`
