@@ -19,6 +19,7 @@
 | [yt-upload](#8-yt-upload--youtube-影片上傳發布) | 透過 Playwright 上傳並公開發布 YouTube 影片 |
 | [tts](#9-tts--文字轉語音) | 用 edge-tts 將文字轉成繁體中文等語音檔 |
 | [taobao-order-extract](#10-taobao-order-extract--淘寶訂單資料提取整理) | 從淘寶訂單 Excel 提取訂單資料並比對物流重量 |
+| [github-skill-sync](#11-github-skill-sync--本機-github-skills-同步) | 雙向同步本機 skills 與本 GitHub 收藏庫 |
 
 ---
 
@@ -285,6 +286,31 @@ py -m edge_tts --voice "zh-TW-HsiaoYuNeural" --text "你好。" --write-media "o
 **產出**：依序編號（`#01`、`#02`…）的 markdown 訂單卡片，存檔如 `訂單數據整理.md`。
 
 **注意**：若結果筆數與使用者預期不符，主動說明實際筆數；商品名稱與金額保留簡體原文，標題與重量「台灣」用繁體，金額保留 `￥` 符號。
+
+**[回到目錄](#目錄)**
+
+---
+
+## 11. github-skill-sync — 本機 ↔ GitHub Skills 同步
+
+**用途**：同步本機 OpenCode skills 目錄與 GitHub 上的 `yd7148/OpenCode_skill` 收藏庫，支援下載（GitHub→本機）與上傳（本機→GitHub）雙向，並維持兩邊說明文件一致。
+
+**適用時機**：使用者要求「同步 skill」、「更新 skill 收藏庫」、「sync skills」、「上傳本機 skill 到 GitHub」、「從 GitHub 拉下 skills」。
+
+**前置需求**：
+- SSH key 已加至 GitHub，repo 以 SSH remote 同步到 `~/OpenCode_skill`
+- 本機 skills 目錄 `~/.config/opencode/skills/`
+
+**運作流程**（雙向）：
+1. 先 `git pull`/`git fetch` 確保 clone 最新。
+2. 用 `rsync`（排除 `.venv/`、`__pycache__/`）把 repo↔本機各 skill 同步。
+3. 同步根目錄 `README.md` / `SKILLS.md` 保持一致。
+4. 上傳方向：`git add -A` → 檢視 `git status` → commit（`yd7148@hotmail.com.tw`）→ `git push origin main`。
+5. 空目錄不追蹤、跳過並提醒；`.venv` 永不提交。
+
+**產出**：本機與 GitHub 兩處 skills 與說明文件一致。
+
+**注意**：push 走 SSH（不需 token）；新增 skill 時記得同步更新 `README.md` 目錄表與 `SKILLS.md` 章節。
 
 **[回到目錄](#目錄)**
 

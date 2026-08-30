@@ -18,6 +18,7 @@ OpenCode 本機 Skills 收藏庫。所有 skill 皆為 MIT 授權，適用於 op
 | `yt-batch-download` | 批次下載 YouTube 影片（1080p） | Python 3.13+、`yt-dlp`、`browser_cookie3`、ffmpeg、deno |
 | `yt-upload` | 透過 Playwright 上傳並公開發布 YouTube 影片 | Playwright |
 | `tts` | 用 edge-tts 將文字轉成繁體中文等語音檔（mp3） | Python + `edge-tts` |
+| `github-skill-sync` | 同步本機 skills 與本 GitHub 收藏庫（雙向） | 無（git/rsync/ssh） |
 
 ## 安裝
 
