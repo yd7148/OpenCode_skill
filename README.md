@@ -19,6 +19,8 @@ OpenCode 本機 Skills 收藏庫。所有 skill 皆為 MIT 授權，適用於 op
 | `yt-upload` | 透過 Playwright 上傳並公開發布 YouTube 影片 | Playwright |
 | `tts` | 用 edge-tts 將文字轉成繁體中文等語音檔（mp3） | Python + `edge-tts` |
 | `github-skill-sync` | 同步本機 skills 與本 GitHub 收藏庫（雙向） | 無（git/rsync/ssh） |
+| `webwright` | 瀏覽器 agent（code-as-action，Playwright 開 Firefox） | Python playwright + Firefox（無 API key） |
+| `web-tools` | 本機網頁工具環境筆記（Crawl4AI / Webwright） | 參考用 |
 
 ## 安裝
 

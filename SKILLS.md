@@ -20,6 +20,8 @@
 | [tts](#9-tts--文字轉語音) | 用 edge-tts 將文字轉成繁體中文等語音檔 |
 | [taobao-order-extract](#10-taobao-order-extract--淘寶訂單資料提取整理) | 從淘寶訂單 Excel 提取訂單資料並比對物流重量 |
 | [github-skill-sync](#11-github-skill-sync--本機-github-skills-同步) | 雙向同步本機 skills 與本 GitHub 收藏庫 |
+| [webwright](#12-webwright--瀏覽器-agent) | code-as-action 瀏覽器 agent（Playwright 開 Firefox） |
+| [web-tools](#13-web-tools--本機網頁工具環境) | 本機 Crawl4AI / Webwright 環境筆記 |
 
 ---
 
@@ -311,6 +313,39 @@ py -m edge_tts --voice "zh-TW-HsiaoYuNeural" --text "你好。" --write-media "o
 **產出**：本機與 GitHub 兩處 skills 與說明文件一致。
 
 **注意**：push 走 SSH（不需 token）；新增 skill 時記得同步更新 `README.md` 目錄表與 `SKILLS.md` 章節。
+
+**[回到目錄](#目錄)**
+
+---
+
+## 12. webwright — 瀏覽器 agent
+
+**用途**：Microsoft 開源的 SWE-style 瀏覽器 agent 框架。agent 透過 bash 逐命令執行 Python/Playwright script 操作瀏覽器（code-as-action），留下可重跑的 `final_script.py` 與截圖證據。
+
+**適用時機**：自動化網頁任務（搜尋、篩選、填表、多步驟流程、資料抽取），且使用者想要可重用 script + 截圖證據，而非一次性答案。
+
+**前置需求**：
+- Python 3.12 venv：`~/web-tools/webwright-python/.venv`（含 playwright、httpx、pydantic）
+- Playwright Firefox：`~/Library/Caches/ms-playwright/firefox-1538`
+- 無需 API key（借用 host model）
+
+**運作流程**（參考 `reference/workflow.md`）：
+1. 建立 `plan.md` 列出關鍵檢查點（CP）。
+2. 用 scratch Playwright script 探索穩定的 selector。
+3. 寫 `final_script.py`（含步驟 log 與截圖）。
+4. 執行並自我驗證（讀 PNG 對照 plan.md），逐項打勾。
+5. 全部通過才回報最終資料。
+
+**重要**：進度 log 為 `final_runs/run_<id>/final_script_log.txt`；瀏覽器用 Firefox（某些站用 Chromium 會 `ERR_HTTP2_PROTOCOL_ERROR`）。
+
+## 13. web-tools — 本機網頁工具環境
+
+**用途**：紀錄本機已安裝的網頁工具環境路徑與用法，供 agent 在需要爬蟲或瀏覽器自動化時引用對應 venv。
+
+**內容**：
+- **Crawl4AI**：`~/web-tools/crawl4ai/.venv/bin/python`（Python 3.12），抓網頁轉乾淨 markdown。用 `AsyncWebCrawler`/`SyncWebCrawler`。
+- **Webwright**：`~/web-tools/Webwright`，python env `~/web-tools/webwright-python/.venv`。
+- Playwright 瀏覽器路徑須設 `PLAYWRIGHT_BROWSERS_PATH=/Users/4pins/Library/Caches/ms-playwright`。
 
 **[回到目錄](#目錄)**
 
