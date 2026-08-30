@@ -20,9 +20,10 @@ this skill guides extraction and parsing without requiring COMSOL installed.
 - Also use when the user asks about the physics, geometry, materials, or studies defined in a COMSOL model.
 
 ## Prerequisites
-- **PowerShell 5.1** (built-in on Windows) for ZIP extraction and XML parsing.
 - **No COMSOL installation required** — the `.mph` file is a standard ZIP archive.
-- Working temp directory: `C:\Users\N00014~1\AppData\Local\Temp\opencode`
+- **無額外 Python 套件（無依賴）** — 只需標準程式庫 `zipfile` / `xml.etree` / `json`，macOS 與 Windows 內建 Python 3 皆可用。
+- Windows: PowerShell 5.1（內建）。macOS: 任一 Python 3 + `unzip`（內建）。
+- Working temp directory: 任一支暫存目錄（如 `/var/folders/.../tmp` 或 `C:\Users\...\AppData\Local\Temp\opencode`）
 
 ## .mph File Structure
 

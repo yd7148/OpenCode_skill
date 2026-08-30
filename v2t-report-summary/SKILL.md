@@ -19,6 +19,12 @@ Reference output (template): `D:\80-Opnecode\Projects\2026_06_playwirght\Class17
 - User hands you a `-3-report.md` (or a class/video name like `Class17-2026_08_12_晚上`) and asks for
   彙總分析 / 重點 / 精簡摘要 / ver2 報告.
 
+## Prerequisites（依賴）
+- **無額外 Python 套件** — 本 skill 僅需 opencode 內建檔案讀寫與 markdown 工具即可完成，
+  不需安裝任何 venv / pip 套件。
+- 輸入前提：來源是 `video2text` skill 產出的 `<BASE>-3-report.md`（逐分鐘報告）。
+- 跨平台可用（macOS / Windows）。
+
 ## Workflow
 
 ### 1. Locate + verify source

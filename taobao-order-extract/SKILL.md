@@ -12,6 +12,16 @@ description: 從淘寶導出的「訂單數據.xlsx」Excel 檔案提取訂單�
 1. **訂單 Excel**：`訂單數據.xlsx`（sheet 名稱通常為「訂單數據」，含表頭）
 2. **物流重量清單**（選用）：純文字/表格，格式為「物流單號 + 目的地（台灣）+ 重量」，例如 `79027852606958 台灣 1.260`
 
+## 前置需求（依賴）
+- **Python 3 + openpyxl**，安裝於本 skill 專用 venv：
+  ```bash
+  cd <skill>/taobao-order-extract
+  python3 -m venv .venv
+  .venv/bin/pip install openpyxl
+  ```
+- 執行時一律用 `.venv/bin/python`（Windows 為 `.venv\Scripts\python.exe`）。
+- 跨平台可用（macOS / Windows）。
+
 ## 訂單 Excel 欄位
 訂單 Excel 每列依序為：
 `訂單號, 訂單提交時間, 訂單狀態, 店鋪名稱, 商品名稱, 商品連結, 型號款式, 商品數量, 商品金額, 實付金額, 運費, 物流公司, 物流單號`

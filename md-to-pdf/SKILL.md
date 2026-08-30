@@ -22,13 +22,27 @@ PDF 由 Pillow 直接繪製文字（非圖片截圖、非 reportlab），中文�
 - 需要把知識整理/配方/規格/報告輸出成可列印的中文 PDF
 - 環境無法安裝 wkhtmltopdf / pandoc / LaTeX 時的純 Python 方案
 
-## 前置需求（已就緒）
+## 前置需求
 
 | 工具 | 路徑 | 說明 |
 |------|------|------|
+| Python 3 | venv 或系統 python | 需含 Pillow |
+| Pillow | `pip install Pillow` | 圖像渲染核心 |
+| 中文字體 | macOS `STHeiti`／Windows `msjh.ttc` | 腳本自動偵測 |
+
+**macOS 安裝（本機已就緒）：**
+```bash
+cd <skill>/md-to-pdf
+python3 -m venv .venv
+.venv/bin/pip install Pillow
+.venv/bin/python make_md_pdf.py <輸入.md> [輸出.pdf]
+```
+腳本會依執行平台自動挑選中文字體（macOS STHeiti Medium、Windows 微軟正黑體 msjh.ttc）與等寬英文字體（macOS Menlo、Windows Consolas）。
+
+**Windows 原版：**
+| 工具 | 路徑 | 說明 |
+|------|------|------|
 | 分析 venv | `D:\80-Opnecode\workspace\_maidate_work\venv\Scripts\python.exe` | 已含 Pillow |
-| 中文字體 | `C:\Windows\Fonts\msjh.ttc`（細明）/ `msjhbd.ttc`（粗體） | Windows 內建 |
-| 英數字體 | `C:\Windows\Fonts\consola.ttf` | 代碼區塊用 |
 
 ## 使用流程
 
