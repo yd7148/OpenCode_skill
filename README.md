@@ -10,6 +10,7 @@ OpenCode 本機 Skills 收藏庫。所有 skill 皆為 MIT 授權，適用於 op
 |-------|------|
 | `comsol-analyzer` | 分析 COMSOL Multiphysics .mph 模型檔案 |
 | `dwg-to-dxf` | 將 DWG 轉成 DXF 並進行幾何/圖層分析 |
+| `taobao-order-extract` | 從淘寶訂單 Excel 提取訂單資料並比對物流重量 |
 | `md-to-pdf` | 將繁體中文 Markdown 渲染成排版精美的 A4 PDF |
 | `v2t-report-summary` | 彙總影片分析報告（OCR × Whisper × GitHub）成繁體中文摘要 |
 | `video-2x-speed` | 倍速影片處理（時間軸慣例） |
