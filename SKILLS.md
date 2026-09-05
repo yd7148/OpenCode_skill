@@ -19,6 +19,7 @@
 | [yt-upload](#8-yt-upload--youtube-影片上傳發布) | 透過 Playwright 上傳並公開發布 YouTube 影片 |
 | [tts](#9-tts--文字轉語音) | 用 edge-tts 將文字轉成繁體中文等語音檔 |
 | [taobao-order-extract](#10-taobao-order-extract--淘寶訂單資料提取整理) | 從淘寶訂單 Excel 提取訂單資料並比對物流重量 |
+| [taobao-cost-fill](#18-taobao-cost-fill--淘寶費用計算明細填寫) | 依訂單卡片填寫淘寶費用計算明細 R0 樣板並存成 R1 |
 | [github-skill-sync](#11-github-skill-sync--本機-github-skills-同步) | 雙向同步本機 skills 與本 GitHub 收藏庫 |
 | [webwright](#12-webwright--瀏覽器-agent) | code-as-action 瀏覽器 agent（Playwright 開 Firefox） |
 | [web-tools](#13-web-tools--本機網頁工具環境) | 本機 Crawl4AI / Webwright 環境筆記 |
@@ -469,6 +470,36 @@ py -m edge_tts --voice "zh-TW-HsiaoYuNeural" --text "你好。" --write-media "o
 - 關鍵幀 PDF 為每頁一張圖（使用者偏好），以 raw bytes 數 `/Type /Page` 驗證頁數
 - **絕不** `git add` videos/analysis 輸出（數百 GB），只提交 `pipeline/`、文件與小成品
 - 長時間 GPU 階段（OCR 再接 Whisper）依序執行，勿併行；以 `timeout 7200000` 保護 shell 呼叫
+
+**[回到目錄](#目錄)**
+
+---
+
+## 18. taobao-cost-fill — 淘寶費用計算明細填寫
+
+**用途**：把依序編號的訂單卡片（含商品名稱、實付金額、物流、重量）依序填入既有的「淘寶費用計算明細」Excel 樣板（`*-taobao-淘寶-R0.xlsx`，目標分頁名即日期如 `2026-09-05`），並另存成 `*-R1.xlsx`。
+
+**適用時機**：使用者要求「填寫費用明細」、「費用計算明細填寫」、「填入訂單資料」、「填 R0 存 R1」，或要將訂單卡片（markdown，#01..#NN）寫入 R0 樣板的商品列。
+
+**前置需求**：
+- Python 3 + `openpyxl`（安裝於本 skill 專用 venv）
+
+**樣板欄位**（row4 起為商品列）：
+- B=項次、C=項目（商品名稱）、D=單價 RMB（實付金額）、H=重量
+- E=單價 NTD、G=成本者 **不填**（維持樣板原樣）；F=匯率、I/J/K=分攤/關稅/總費用為公式
+- 商品區下方有「達飛運費」行（G=『運費』）與「賴政府關稅」行、合計行（公式勿動）
+
+**填入規則**：
+- 依序把卡片 #01..#NN 對應到 row4 起的每一列，同步填 B 項次。
+- C=商品名稱、D=實付金額（RMB 數值）、H=重量；卡片有 `台灣 數字` 才填重量，無則留空。
+- 樣板可能殘留**上一期的幽靈項次**，填入後清除商品區與運費行之間的殘留項次。
+- 存檔為 `*-R1.xlsx`，**不覆蓋 R0**。
+
+**執行**：套用內附 `fill_cost_sheet.py`（`--in`/`--out`/`--sheet`/`--cards`；`--cards` 省略時由 stdin 讀取）。
+
+**產出**：`*-taobao-淘寶-R1.xlsx`（商品區已填妥之明細表）。
+
+**注意**：若樣板分頁眾多（歷史各期），務必指定 `--sheet` 或在檔名含日期以自動辨識；商品筆數須與卡片數一致，並以回讀驗證 C/D/H 與項次對應。
 
 **[回到目錄](#目錄)**
 

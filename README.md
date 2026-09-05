@@ -11,6 +11,7 @@ OpenCode 本機 Skills 收藏庫。所有 skill 皆為 MIT 授權，適用於 op
 | `comsol-analyzer` | 分析 COMSOL Multiphysics .mph 模型檔案 | 無額外依賴（`.mph` 為 ZIP，免裝 COMSOL） |
 | `dwg-to-dxf` | 將 DWG 轉成 DXF 並進行幾何/圖層分析 | ODA File Converter + Python `ezdxf`（Windows） |
 | `taobao-order-extract` | 從淘寶訂單 Excel 提取訂單資料並比對物流重量 | Python + `openpyxl` |
+| `taobao-cost-fill` | 依訂單卡片填寫「淘寶費用計算明細」R0 樣板並存成 R1 | Python + `openpyxl` |
 | `md-to-pdf` | 將繁體中文 Markdown 渲染成排版精美的 A4 PDF | Python + Pillow + 中文字體（macOS/Windows 自動偵測） |
 | `v2t-report-summary` | 彙總影片分析報告（OCR × Whisper × GitHub）成繁體中文摘要 | 無（opencode 內建工具） |
 | `video-2x-speed` | 倍速影片處理（時間軸慣例） | ffmpeg + `yt-dlp` |
@@ -43,6 +44,6 @@ python3 -m venv .venv
 ## 依賴／平台總覽
 
 - **無依賴**：`comsol-analyzer`、`v2t-report-summary`
-- **純 Python（跨平台）**：`taobao-order-extract`（openpyxl）、`md-to-pdf`（Pillow）、`tts`（edge-tts）、`taipower-exam-solver`（pymupdf）
+- **純 Python（跨平台）**：`taobao-order-extract`（openpyxl）、`taobao-cost-fill`（openpyxl）、`md-to-pdf`（Pillow）、`tts`（edge-tts）、`taipower-exam-solver`（pymupdf）
 - **需額外系統工具**：`dwg-to-dxf`（ODA Converter）、`video-2x-speed`（ffmpeg）、`yt-batch-download`（ffmpeg + deno）、`yt-upload`（Playwright）、`takeout-exif-merge`（ExifTool）
 - **重型機器學習（每個 skill 有專用 venv）**：`video2text`、`pdf-exam-extractor`、`video-class-pipeline`
