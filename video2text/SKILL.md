@@ -1,6 +1,6 @@
 ---
 name: video2text
-description: Analyze recorded meeting / online-conference videos to produce a bilingual (Traditional Chinese) markdown report plus a key-frame PDF. Extracts frames every 10s and runs RapidOCR on them, transcribes the audio with faster-whisper large-v3-turbo (CPU int8, recommended) or whisper-large-v3 via OpenVINO (Intel GPU, legacy), converts to Traditional Chinese with OpenCC, then cross-compares OCR slide text vs. speech into a timeline table with summary analysis. Handles speed-changed videos (e.g. 2x) by restoring audio tempo and aligning both timelines. Use when asked to "分析影片", "影片轉文字", "畫面與語音重點摘要", "OCR + whisper 比對", or to analyze a .mp4 recording into markdown/PDF deliverables.
+description: Analyze recorded meeting / online-conference videos to produce a bilingual (Traditional Chinese) markdown report plus a key-frame PDF. Extracts frames every 10s and runs RapidOCR on them, transcribes the audio with faster-whisper large-v3-turbo (CPU int8) or whisper-large-v3 via OpenVINO GenAI (Intel GPU, RECOMMENDED — RTF ~0.3), converts to Traditional Chinese with OpenCC, then cross-compares OCR slide text vs. speech into a timeline table with summary analysis. Handles speed-changed videos (e.g. 2x) by restoring audio tempo and aligning both timelines. Use when asked to "分析影片", "影片轉文字", "畫面與語音重點摘要", "OCR + whisper 比對", "ASR 轉逐字稿", or to analyze a .mp4/.wav recording into markdown/PDF deliverables.
 license: MIT
 compatibility: opencode
 metadata:
@@ -27,6 +27,7 @@ user's project folder (e.g. `D:\80-Opnecode\Projects\<project>\`):
 - Analysis venv `D:\80-Opnecode\workspace\_maidate_work\venv` (pip `venv\Scripts\python.exe`).
   Alternative: `D:\Downloads\2026-08-10-video2text\_maidate_work\venv` (if it exists).
   Packages: openvino 2026.3.0, openvino-genai 2026.3.0.0, **optimum-intel 1.27.0 (must stay 1.27.x, see gotchas)**, transformers 4.57.x, onnxruntime 1.28, rapidocr-onnxruntime 1.2.3, opencv-python, pillow, numpy, reportlab 5.0, onnx.
+  → **This is the venv for the Intel-GPU route (Option 3b)**; it also has opencc for 簡→繁.
 - ffmpeg: `C:\Users\N000149839\opencode-tools\ffmpeg.exe` (primary, not on PATH — always use full path).
   - Fallback: `D:\Downloads\2026-08-10-video2text\_maidate_work\ffmpeg_pkg\ffmpeg-9.0-essentials_build\bin\ffmpeg.exe`
   - Fallback binary from `imageio-ffmpeg` package (global Python): `C:\Users\N000149839\AppData\Local\Programs\Python\Python313\Lib\site-packages\imageio_ffmpeg\binaries\ffmpeg-win-x86_64-v7.1.exe`; the file is NOT named `ffmpeg.exe`, so **copy it to `C:\Users\N000149839\opencode-tools\ffmpeg.exe`** for tools that require that filename.
@@ -103,6 +104,28 @@ py -m yt_dlp --no-check-certificates `
 - Segments format: TS (MPEG-TS), merged to MP4 (copy codec, no re-encoding).
 - ~300-400 MB/hour for 1080p30 HLS.
 - If rate-limited (403 after 800+ segments), re-run script with fresh m3u8 URL.
+
+### 0a. Speed conversion — 200% (2x) → `<video名>-2x.mp4`
+When the user hands a normal-speed recording and wants a 200% playback version (or the pipeline needs the
+2x convention), produce `<video名>-2x.mp4` next to the source in the project folder:
+
+```powershell
+$ff = "C:\Users\N000149839\opencode-tools\ffmpeg.exe"
+& $ff -y -i "<video>.mp4" -filter_complex "[0:v]setpts=0.5*PTS[v];[0:a]atempo=2.0[a]" `
+    -map "[v]" -map "[a]" -c:v libx264 -preset veryfast -crf 23 -c:a aac -b:a 64k `
+    -movflags +faststart "<video>-2x.mp4"
+```
+
+- **Video**: `setpts=0.5*PTS` halves frame timestamps → frame rate doubles (16 fps → 32 fps on the
+  2026-08-31 4h meeting recording). **Resolution is preserved exactly** (1920x1080) — only the timeline compresses.
+- **Audio**: `atempo=2.0` doubles speed WITHOUT the chipmunk pitch shift. atempo only accepts 0.5–2.0 per
+  filter; for higher rates chain multiple: `atempo=2.0,atempo=1.5` (= 3x).
+- **Measured output (2026-08-31, 4h00 1080p/16fps meeting)**: 633 MB source → **165 MB `_2x.mp4`**
+  (191 kb/s total ≈ 150 kb/s video + 34 kb/s mono AAC), Duration 4:00:00 → **2:00:00**. Fast with
+  `-preset veryfast` + `-crf 23`; `-movflags +faststart` for streaming-friendly playback.
+- **Verify** after encode: `& $ff -i <video>-2x.mp4` → Duration ≈ half of source, same resolution.
+- This 2x file feeds the pipeline: audio restore `atempo=0.5` per step 1, and the **time-axis rule**
+  (ASR_t / 2) per section 1. See also deliverables checklist item `<video名>-2x.mp4`.
 
 ### 0b. Work location — CRITICAL
 Do NOT use the OS temp dir (`C:\Users\N000149839\AppData\Local\Temp\opencode`); it gets wiped periodically,
@@ -222,6 +245,9 @@ $ff = "<work>\ffmpeg_pkg\ffmpeg-9.0-essentials_build\bin\ffmpeg.exe"
   | `tiny` | ~72 MB | ~5s/frame (fastest) | **~88%** | Usable as fallback; prompt echo + gibberish dominate |
   - **Lesson learned**: `large-v3-turbo` is ideal but too slow for long videos without dedicated GPU. `small` model crashed repeatedly (possibly memory). `tiny` model works but produces massive hallucinations — prompt text leaks into output, gibberish on silent stretches, repeated CTA fragments. **Always document which model was used and its limitations in the report.**
   - **initial_prompt caution**: the prompt text itself (e.g. "工業4.0智慧製造課程，請以繁體中文輸出。") frequently appears as verbatim ASR output during silence — mark these segments as prompt-echo hallucinations.
+  - **Intel GPU shortcut (2026-09 measured)**: if the machine has the OpenVINO export ready
+    (`whisper-large-v3-ov2` + `_maidate_work\venv`), skip CPU faster-whisper entirely — use
+    openvino-genai `WhisperPipeline` (Option 3b), RTF ~0.3 on UHD 770 ⇒ 2h11m in ~40 min wall.
 - **Checkpointing**: read the wav with `wave`, slice `UNIT`-second units, transcribe each unit in its own
   process invocation; write one JSON per unit (`u_%04d.json`: start/end/segments). Re-running skips finished
   units → survives the ~4–5 min external watchdog. Budget ≤215 s of work per shell call, timeout ≤260 s.
@@ -277,28 +303,49 @@ $ff = "<work>\ffmpeg_pkg\ffmpeg-9.0-essentials_build\bin\ffmpeg.exe"
   - **Detection heuristic**: segments where >50% of characters are non-CJK or where the segment length is <5 chars after removing punctuation — likely hallucination.
   - **Report requirement**: always state the hallucination rate and which model produced it. When using tiny model, caveat that "ASR 品質受限，僅供參考，以 OCR 畫面文字為主要依據".
 
-### 3b. Option B (legacy): OpenVINO whisper-large-v3 on Intel GPU
-- Model: `whisper-large-v3-ov2` loaded as `OVModelForSpeechSeq2Seq` (not `WhisperPipeline` — API changed in newer optimum-intel).
+### 3b. Option B: Intel GPU — openvino-genai `WhisperPipeline` (RECOMMENDED, measured 2026-09)
+The stateful optimum export `whisper-large-v3-ov2` (the one with `beam_idx` in the decoder) is consumed
+DIRECTLY by openvino-genai 2026.3.0.0 — no re-export, no HF processor, no torch. This is **~10×–30× faster
+than the legacy `OVModelForSpeechSeq2Seq` route** below and beats CPU faster-whisper for long files.
+
+- **VenV**: `D:\80-Opnecode\workspace\_maidate_work\venv\Scripts\python.exe` (has openvino-genai 2026.3.0.0,
+  numpy, opencc). Model: `D:\80-Opnecode\workspace\_maidate_work\whisper-large-v3-ov2`. No `HF_HUB_OFFLINE`
+  needed (pure local).
+- **Measured speed (Intel UHD 770, 2h10m52s meeting wav, 14 × 600s windows)**: RTF ≈ 0.26–0.40
+  (30s ≈ 8.7s; 600s ≈ 185–290s/window), model load ~47s, **full 2h11m file ≈ 40 min wall time** in ONE
+  detached background process. Long inputs up to ≥1200s tested; RTF stays ~0.3 regardless of window size.
+- Input must be a **numpy `float32` array normalized to 0..1** (a Python list raises
+  `ValueError: vector too long`). Returns `WhisperDecodedResults`; timestamps via `.chunks[i].start_ts /
+  .end_ts / .text` — **absolute seconds relative to the call's input start**, so add the window offset
+  (`wi*WINDOW`) for absolute file time.
+- Generate config must be **kwargs or a `WhisperGenerationConfig` object** — a plain dict raises TypeError.
   ```python
-  from optimum.intel import OVModelForSpeechSeq2Seq
-  import transformers
-  model = OVModelForSpeechSeq2Seq.from_pretrained(model_dir, device='GPU')
-  processor = transformers.WhisperProcessor.from_pretrained(processor_cache_dir)
+  import numpy as np, json, os, glob, wave, time
+  from openvino_genai import WhisperPipeline
+  WINDOW = 600                      # seconds per checkpoint unit
+  with wave.open(wav, "rb") as w:
+      raw = np.frombuffer(w.readframes(w.getnframes()), np.int16).astype(np.float32) / 32768.0
+  pipe = WhisperPipeline(MODEL, device="GPU")          # load once per process (~47s)
+  out = pipe.generate(raw[0:30*16000], language="<|zh|>", task="transcribe",
+                      return_timestamps=True, initial_prompt="會議錄音，請以繁體中文輸出。")
+  segs = [{"start": round(offset + c.start_ts, 2), "end": round(offset + c.end_ts, 2), "text": c.text}
+          for c in out.chunks]     # chunk start/end are absolute-to-input seconds
   ```
-- Processor cache: Download `preprocessor_config.json`, `tokenizer_config.json`, `vocab.json`, `merges.txt`, `added_tokens.json` from HuggingFace with `requests.get(url, verify=False)` (SSL fails through proxy). Set `os.environ['HF_HUB_OFFLINE'] = '1'` when loading.
-- Do NOT feed the whole 60-min wav in one `generate()` call (it gets killed). Split externally into 30s chunks:
-  `raw = raw_all[i*30*16000 : (i+1)*30*16000]` (int16 wav → `float32/32768`).
-- Process in batches (e.g. `limit=30` per invocation) writing one JSON per chunk to `whisper_chunks\chunk_%04d.json`; re-run to skip finished chunks.
-- Call signature:
-  ```python
-  inputs = processor(chunk_audio, sampling_rate=16000, return_tensors="pt")
-  with torch.no_grad():
-      outputs = model.generate(inputs.input_features, max_length=448, language="<|zh|>", task="transcribe")
-  text = processor.batch_decode(outputs, skip_special_tokens=True)[0]
-  ```
-  - `language="<|zh|>"` is REQUIRED.
-- ~5 min per chunk on GPU ⇒ 60-min video ≈ 3+ hours total (need multiple batch runs).
-- **Hallucination detection**: Whisper injects repeated text ("好好好…", "謝謝大家") and YouTube CTA ("請不吝點讚 訂閱…") on silent segments. Mark these as artifacts in the final report.
+- **Windowed checkpoint pattern** (resume-safe): loop windows `wi in range(n_win)`, skip if
+  `win_%04d.json` exists, save one JSON per window (offset + segments), then merge + OpenCC `s2twp` →
+  繁體. Same detached Start-Process / WMI pattern as faster-whisper (Option A).
+- **Hallucinations (same family as faster-whisper)**: leading-silence YouTube CTA 「請不吝點讚 訂閱 轉發
+  打賞支援明鏡與點點欄目」 (measured here on the first ~5 min of a meeting wav), initial_prompt echo
+  （「請以繁體中文輸出。」→ mis-heard 「議論中文輸出。」）. Filter exact matches before delivering;
+  ~0.6% of segments on the 2026-09-07 meeting.
+
+**Legacy fallback — `OVModelForSpeechSeq2Seq` (AVOID, ~30× slower)**: `optimum.intel.OVModelForSpeechSeq2Seq`
+loads the same `whisper-large-v3-ov2` with `device='GPU'` + a `WhisperProcessor` from the processor cache
+(`whisper-processor-cache`, needs `verify=False` downloads + `HF_HUB_OFFLINE=1`). Feed 30s chunks
+(`float32/32768`), batch limit 30 with per-chunk JSON checkpoints, call
+`model.generate(inputs.input_features, max_length=448, language="<|zh|>", task="transcribe")`,
+`processor.batch_decode(outputs, skip_special_tokens=True)[0]`. ~5 min/30s-chunk ⇒ 60-min video ≈ 3+ h.
+Hallucinations: repeated text ("好好好…", "謝謝大家") + YouTube CTA on silence; mark as artifacts.
 
 ### 4. Slide grouping (OCR) + alignment (speech)
 - Merge consecutive frames into slide groups when cleaned-text similarity (`difflib.SequenceMatcher` ratio on stripped text) ≥ ~0.45; merge groups with identical titles.
