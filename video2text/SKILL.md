@@ -356,6 +356,16 @@ Hallucinations: repeated text ("好好好…", "謝謝大家") + YouTube CTA on 
 - Output `merged_timeline.txt` (`=== G<nnn> <start>-<end> | <title> | frame_<id>` + OCR lines + ASR lines),
   `slide_groups.txt`, `transcript_zh.txt` — these three files are the raw material for the report.
 
+**Programmatic grouping pattern (2026-09-07 measured)**: `build_slides.py` merges consecutive frames
+(cleaned-text `difflib.SequenceMatcher` ratio ≥ ~0.45) into slide groups and writes JSON `slides.json`:
+- Each group: `slide`, `start/end frame idx`, `start_time_2x / start_time_orig`, `frame_count`,
+  `rep_frame` (= the frame with the LONGEST total OCR text length), `texts` (grouped OCR lines).
+- Time convention kept per project (2026-09-07: interval 15s → 346 frames → **95 slide groups** for a
+  5190s / 2x video; frame i ↔ 2x `(i-1)*15s` ↔ orig `(i-1)*30s`).
+- Chapter key points live in a hand-maintained `NOTES = {slide_no: (title, key_text)}` dict in the PDF
+  builder, NOT in this file — keep the grouping script dumb, put curation in the PDF step.
+- Dump `slides.json` to a UTF-8 `slides_text.txt` for the agent to read (console is cp950 garbled).
+
 ### 4b. PDF document cross-referencing (when reference PDFs are provided)
 If the user provides PDF reference materials (e.g. lecture slides, technical guides), extract text and cross-reference with OCR + ASR:
 
@@ -453,6 +463,28 @@ When the deliverable is a rendered PDF of the markdown report (not key-frame scr
 - This produces an A4 multi-page PDF with H1/H2/H3 headings, tables (auto-width + zebra stripes), code blocks, quotes, and page numbers.
 - Save as `<video名>-分析影片-畫面與語音重點摘要.pdf` alongside the `.md`.
 
+### 6c. Full-bleed key-frame PDF v2 (reportlab, one frame per page, 滿版 — RECOMMENDED for course videos)
+`build_pdf_v2.py` (reportlab 5.0; venv `_maidate_work\venv` has reportlab + Pillow). Layout = **landscape A4
+every page**: background PNG/JPEG cover-cropped to FILL the whole page (no letterboxing), plus a ~300 pt
+right-side semi-transparent black panel (alpha 0.62) with: 標題 / 頁碼·分群 / 2x + 原片時間 / 畫面幀 /
+`★ 老師重點` (curated `NOTES` dict, gold) / `OCR 辨識文字` (cleaned, filtered chrome noise, cyan heading).
+Font: `C:\Windows\Fonts\msjh.ttc` via `TTFont("CJK", ..., subfontIndex=0)`.
+- Cover-crop with PIL (NOT reportlab transforms): `scl = max(tw/w, th/h)`, resize LANCZOS, crop centred
+  (x offset = 0, y offset = top-third) to `(1750, 1237)` for landscape A4 — then `c.drawImage(tmp, 0, 0, W, H)`.
+- **CRITICAL reportlab gotcha (hit 2026-09-07)**: reportlab caches embeddable images **by source filename**.
+  Reusing ONE temp path for every page makes ALL pages embed the FIRST page's image (bright slides all
+  render black if page 1 is a dark frame — verified: embedded xref content was identical each page).
+  Fix: write a **unique temp file per page** (`pg_tmp_%03d.jpg`) and drawImage that; clean up after `save()`.
+- Use JPEG q≈88 per page (~250 KB/page → 92 pages ≈ 23 MB) — PNGs made 83 MB. Screen-recording frames are
+  UI/text so JPEG q88 is visually lossless.
+- Verify WITHOUT image input (model cannot read images here): render pages via PyMuPDF `get_pixmap(dpi=72)`
+  and average RGB per page (`statistics.mean` over samples) — expect bright pages ≈170-220, truly-black
+  source frames ≈7.
+- Dark frames at the very start of a meeting recording are the real video content (black screen) — do not
+  "fix" them, just label them.
+- When the user asks for a "豐富/滿版" version of an earlier plain key-frame PDF, keep the old file, produce
+  `-v2.pdf`, and update the report's 附註 file table to point at v2.
+
 ## Environment gotchas (learned the hard way — respect these)
 - **Network sits behind a Fortinet proxy** (`HTTP(S)_PROXY=http://n000149839:...@10.3.159.1:80`).
   - Python/yt-dlp HTTPS calls fail cert verification → always use `--no-check-certificates`.
@@ -471,6 +503,9 @@ When the deliverable is a rendered PDF of the markdown report (not key-frame scr
   shell call, timeout ≤260 s**; OCR with `ProcessPoolExecutor(max_workers=12)` ≈ 5 s/frame → ~40 frames per call.
 - **Python console codepage (cp950) crashes on CJK/Korean output**: start scripts with
   `import sys; sys.stdout.reconfigure(encoding="utf-8", errors="replace")`.
+- **reportlab caches images by filename** (see §6c): a single temp path reused across pages = all pages embed
+  the first image. Always give each `drawImage` a unique source file. Also this reportlab build rejects a PIL
+  `Image` object (`expected str, bytes or os.PathLike object, not Image`) — must pass a real file path.
 - PowerShell native-command stderr is rendered as errors by `2>&1 | Select-Object -Last n`; check exit code via `$LASTEXITCODE` and verify output files exist rather than trusting the last lines.
 - Optional DirectML OCR patch: monkeypatch `rapidocr_onnxruntime.utils.OrtInferSession.__init__` to add `DmlExecutionProvider`; on this Intel iGPU it was 2x SLOWER than CPU, so don't bother.
 
@@ -484,7 +519,13 @@ When the deliverable is a rendered PDF of the markdown report (not key-frame scr
 - [ ] `<video名>-分析影片-畫面與語音重點摘要.pdf` in project folder (rendered from .md via Pillow+msjh)
       — use `md-to-pdf` skill's `make_md_pdf.py` with modified SRC/OUT/FOOTER paths
       — verify first page OCR for Chinese readability before delivery
-- [ ] `<video名>-畫面重點.pdf` in project folder (use cropped frames if cropped)
+- [ ] `<video名>-畫面重點.pdf` in project folder (use cropped frames if cropped); if the user asks for a
+      richer/full-bleed layout, also produce `<video名>-關鍵幀-v2.pdf` via build_pdf_v2.py (§6c, reportlab +
+      Pillow, landscape A4, cover-crop frame + ★老師重點/OCR side panel, one frame per page, unique temp
+      file per page) and point the report's 附註 file table at v2.
+- [ ] `<video名>-slides.json` (intermediate of programmatic slide grouping, §4: `slide`, `rep_frame`,
+      frame idx + 2x/orig times, `texts` per group) in `_v2t_work\` — source of truth for the report's
+      slide-by-slide table.
 - [ ] `README-影片分析管線與檔案說明.md` (folder/pipeline documentation, if user asks for a 說明檔;
       written 2026-08-25 for the playwright batch: naming rules `-1 mp4 / -2-keyframes.pdf /
       -3-report.md`, per-class table with durations + YouTube IDs extracted from report headers,
