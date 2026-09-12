@@ -27,6 +27,7 @@
 | [taipower-exam-solver](#15-taipower-exam-solver--國營事業考題解題) | 國營事業招考 PDF 考題、官方解答與逐步解題 |
 | [takeout-exif-merge](#16-takeout-exif-merge--google-相簿-exif-合併) | 將 Takeout JSON EXIF 合併回同名媒體檔 |
 | [video-class-pipeline](#17-video-class-pipeline--課程影片分析管線) | 課程影片批式分析（OCR × Whisper × 關鍵幀 PDF）與編輯 |
+| [sd-webui-vae-fix](#19-sd-webui-vae-fix--a1111-檢查點vae切換修復) | 修復 A1111 檢查點/VAE「無法切換」（diffusers→LDM 格式修復） |
 
 ---
 
@@ -500,6 +501,39 @@ py -m edge_tts --voice "zh-TW-HsiaoYuNeural" --text "你好。" --write-media "o
 **產出**：`*-taobao-淘寶-R1.xlsx`（商品區已填妥之明細表）。
 
 **注意**：若樣板分頁眾多（歷史各期），務必指定 `--sheet` 或在檔名含日期以自動辨識；商品筆數須與卡片數一致，並以回讀驗證 C/D/H 與項次對應。
+
+**[回到目錄](#目錄)**
+
+---
+
+## 19. sd-webui-vae-fix — A1111 檢查點/VAE 切換修復
+
+**用途**：修復 AUTOMATIC1111 Stable Diffusion WebUI（A1111 / sd.webui）中「切換檢查點（`sd_model_checkpoint`）或 VAE（`sd_vae`）失敗」的問題。核心是判別 VAE 檔是 **diffusers 格式**還是 **LDM（`first_stage_model.*`）格式**，並從本機完整檢查點抽出正確 VAE 覆寫 `models\VAE\`，最後以 `/sdapi/v1` API 驗證。
+
+**適用時機**：使用者要求「修復無法切換 sd_xl_base_1.0.safetensors / 0.9vae」、「檢查點切換失敗」、「VAE 切換失敗」、「VAE format / Missing key(s)/Unexpected key(s)」或 A1111 出現「無法切換 <名稱>」toast。
+
+**根因**：
+- A1111 的 `_load_vae_dict` 用 strict `load_state_dict`，只接受 LDM 鍵（`decoder.*` / `encoder.*` / `quant_conv` / `post_quant_conv`）。
+- 從 HuggingFace 下載的 `vae/diffusion_pytorch_model.safetensors` 是 diffusers 鍵（`down_blocks` / `mid_block` / `to_q`），載入即 `RuntimeError`。
+- 此檔放進 `models\VAE\` 會同時破壞兩種情境：`Automatic` 近旁搜尋切檢查點、以及 VAE 下拉直接選它。
+
+**前置需求**：
+- A1111 WebUI 內建 Python（含 torch + safetensors）
+- 本機有「烤入同款 VAE」的完整檢查點（例如 6.6GB 的 `sd_xl_base_1.0_0.9vae.safetensors`）
+
+**運作流程**：
+1. `scripts/check_vae_format.py` 判別 `models\VAE\` 下各檔格式。
+2. `scripts/extract_vae.py <檢查點> <輸出路徑>` 抽出 `first_stage_model.*` 存成獨立 VAE，覆寫 `models\VAE\`。
+3. 清除殘留 `python launch.py` 實例（CPU/GPU/7860 搶佔），以含 `--api` 的啟動檔重啟，先備份舊 log。
+4. API 驗證三方向（每次 `GET /sdapi/v1/options` 確認）：
+   - VAE 下拉直接選修好的檔
+   - `sd_vae=Automatic` + 切檢查點（近旁搜尋）
+   - 切到「烤 VAE」的那顆檢查點
+5. `POST /sdapi/v1/txt2img` 出圖煙霧測試。
+
+**產出**：`models\VAE\` 下正確 LDM 格式的 VAE 檔，A1111 可正常切換檢查點與 VAE。
+
+**注意**：fp16 VAE 的 `A tensor with all NaNs` 訊息是正常現象（自動轉 fp32 重試）；A1111 重啟後會把 `Automatic` 解析出的實際 VAE 檔名寫回 `config.json`，屬正常行為；`Anything-V3.0-X-VAE.pt` 是 SD1.x 用 VAE，勿用於 SDXL。
 
 **[回到目錄](#目錄)**
 
