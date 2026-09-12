@@ -41,7 +41,12 @@ def main() -> None:
         ("down_blocks." in k or "mid_block." in k or "up_blocks." in k) for k in keys
     )
     has_checkpoint = any(
-        ("model.diffusion_model" in k or "cond_stage_model" in k or "text_model" in k)
+        (
+            "model.diffusion_model" in k
+            or "cond_stage_model" in k
+            or "text_model" in k
+            or "conditioner" in k
+        )
         for k in keys
     )
 
