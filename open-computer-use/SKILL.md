@@ -81,3 +81,20 @@ Read [references/usage.md](references/usage.md) for JSON config examples, direct
 - [references/installation.md](references/installation.md): one-time CLI install, agent MCP install commands, and macOS permissions.
 - [references/usage.md](references/usage.md): MCP config, direct CLI calls, sequencing, and platform behavior.
 - [references/troubleshooting.md](references/troubleshooting.md): permission, desktop-session, app discovery, and action failures.
+
+## 本機實測筆記（macOS，2026-09）
+
+實測環境：macOS + `open-computer-use` v0.3.5，以下為本次完整安裝到操作的經驗。
+
+- **Node 安裝**：本機若無 node/npm，先 `brew install node`（實測 v26.8.2 / npm 11.19.1）。
+- **npm 安裝**：`npm i -g open-computer-use`。若出現 `npm warn install-scripts open-computer-use@0.3.5 (postinstall…)` 表示 postinstall 被 npm 阻擋，**不影響執行**（runtime 內建於套件）；若真的有缺檔再補 `npm i -g --allow-scripts=open-computer-use`。
+- **權限**：`open-computer-use doctor` 顯示 `accessibility=missing / screenRecording=missing` 時，用下列指令直接開設定頁，請使用者勾選「執行 opencode 的終端機 app」：
+  ```sh
+  open "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"
+  open "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture"
+  ```
+  授權後 `doctor` 應顯示 `accessibility=granted, screenRecording=granted`。
+- **已實測通過**的工具：`list_apps`、`get_app_state`（含 `text_limit` 搜尋）、`click`（`element_index`）、`set_value`、`type_text`、`press_key`。
+- **陷阱 1**：`open -a TextEdit` 啟動會停在「打開」open-panel，`press_key Escape` 無法關閉，需找 `新增文件`（`ID: NewDocumentButton`）以 `click` 建立空白文件；此後才有 `First Text View` 可 `set_value`／`type_text`。
+- **陷阱 2**：有未存內容時 `press_key Cmd+Q` 會彈「儲存/刪除」對話框，點 `刪除`（`ID: DontSaveButton`）後 TextEdit 會**自動重開**（pid 改變）回到開啟面板，需再按一次 `Cmd+Q`（或 `osascript -e 'tell application "TextEdit" to quit'`）才會真正結束。
+- **多步驟重用狀態**：`open-computer-use call --calls '[{...},{...}]'` 讓單一 process 內連續動作共用最近的 `element_index` 對映，避免跨 process index 失效。
