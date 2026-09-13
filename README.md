@@ -27,6 +27,7 @@ OpenCode 本機 Skills 收藏庫。所有 skill 皆為 MIT 授權，適用於 op
 | `takeout-exif-merge` | 將 Google 相簿 Takeout JSON EXIF 合併回同名媒體檔 | Python 3 + ExifTool |
 | `video-class-pipeline` | 課程影片批式分析（OCR × Whisper × 關鍵幀 PDF）與裁切/2倍速 | Python venv：EasyOCR、whisper、opencv + ffmpeg（NVENC） |
 | `sd-webui-vae-fix` | 修復 A1111 檢查點/VAE「無法切換」（diffusers→LDM VAE 格式修復） | WebUI 內建 python（torch + safetensors） |
+| `open-computer-use` | Open Computer Use（macOS/Linux/Windows 的開源 Computer Use MCP）安裝、設定與操作 | `open-computer-use` / `ocu` CLI（npm，macOS 14+） |
 
 ## 安裝
 
@@ -49,3 +50,4 @@ python3 -m venv .venv
 - **需額外系統工具**：`dwg-to-dxf`（ODA Converter）、`video-2x-speed`（ffmpeg）、`yt-batch-download`（ffmpeg + deno）、`yt-upload`（Playwright）、`takeout-exif-merge`（ExifTool）
 - **重型機器學習（每個 skill 有專用 venv）**：`video2text`、`pdf-exam-extractor`、`video-class-pipeline`
 - **需 WebUI 環境**：`sd-webui-vae-fix`（用 webui 內建 Python：torch + safetensors，抽取本機大檢查點的 VAE 並以 `/sdapi/v1` API 驗證）
+- **需 npm 全域工具**：`open-computer-use`（`npm i -g open-computer-use`，macOS 14+ 需授權 Accessibility + Screen Recording）

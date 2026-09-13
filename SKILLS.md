@@ -28,6 +28,7 @@
 | [takeout-exif-merge](#16-takeout-exif-merge--google-相簿-exif-合併) | 將 Takeout JSON EXIF 合併回同名媒體檔 |
 | [video-class-pipeline](#17-video-class-pipeline--課程影片分析管線) | 課程影片批式分析（OCR × Whisper × 關鍵幀 PDF）與編輯 |
 | [sd-webui-vae-fix](#19-sd-webui-vae-fix--a1111-檢查點vae切換修復) | 修復 A1111 檢查點/VAE「無法切換」（diffusers→LDM 格式修復） |
+| [open-computer-use](#20-open-computer-use--開源-computer-use-maclinuxwindows) | Open Computer Use MCP/CLI 的安裝、驗證、設定與操作 |
 
 ---
 
@@ -534,6 +535,41 @@ py -m edge_tts --voice "zh-TW-HsiaoYuNeural" --text "你好。" --write-media "o
 **產出**：`models\VAE\` 下正確 LDM 格式的 VAE 檔，A1111 可正常切換檢查點與 VAE。
 
 **注意**：fp16 VAE 的 `A tensor with all NaNs` 訊息是正常現象（自動轉 fp32 重試）；A1111 重啟後會把 `Automatic` 解析出的實際 VAE 檔名寫回 `config.json`，屬正常行為；`Anything-V3.0-X-VAE.pt` 是 SD1.x 用 VAE，勿用於 SDXL。
+
+**[回到目錄](#目錄)**
+
+---
+
+## 20. open-computer-use — 開源 Computer Use（macOS/Linux/Windows）
+
+**用途**：`open-computer-use` 是開源的 Computer Use 服務，包成 MCP server + 原生 CLI（`open-computer-use` / `ocu`），可在 macOS、Linux、Windows 上以無侵入式（Accessibility）方式操作桌面 GUI。核心工具面：`list_apps`、`get_app_state`、`click`、`perform_secondary_action`、`scroll`、`drag`、`type_text`、`press_key`、`set_value`。
+
+**適用時機**：agent 需要安裝、驗證、除錯、設定或操作 Open Computer Use（原生 CLI／stdio MCP／直接 Computer Use 工具呼叫）時。
+
+**前置需求**：
+- `npm i -g open-computer-use`（亦提供 `ocu` 短指令）
+- macOS 需 **14.0 以上**；首次執行需授予 **Accessibility** 與 **Screen Recording** 權限
+- Windows / Linux 需在已登入的桌面 session 內執行
+
+**核心流程**：
+1. macOS 先用 `sw_vers -productVersion` 確認 ≥ 14.0，過舊直接說明無法啟動，勿以 `doctor`/權限當解法。
+2. `open-computer-use -h` / `ocu -h` 確認已安裝；未裝或設定缺失讀 `references/installation.md`。
+3. 首次 GUI 任務前跑 `open-computer-use doctor`，權限不足引導使用者於 onboarding UI 授權。
+4. `open-computer-use call list_apps` 檢視可用 app。
+5. `open-computer-use call get_app_state --args '{"app":"TextEdit"}'` 取得目前 UI 狀態；長文字用 `text_limit:1000` 或 `"max"`；長頁/清單不完整用更大的 `max_tree_nodes` / `max_tree_depth`。
+6. 偏好以最新 `get_app_state` 回傳的 `element_index` 做元素級操作；多步驟用 `open-computer-use call --calls '<json-array>'` 讓單一 process 重用 element index 對映。
+7. 支援 MCP 的 runtime 設定 `open-computer-use mcp`（或 `ocu mcp`）直接呼叫工具。
+
+**重要規則**：
+- 視目標桌面為使用者真實 session：不瀏覽密碼管理器、私人內容或敏感 app，除非使用者明確要求。
+- **先問再執行**對外可見操作：送出、刪除、購買、批准、上傳等。
+- `get_app_state` 後才用 `element_index`；跨 session 或大變動後勿猜 index。
+- 優先語意動作與 `set_value`；座標 `click`/`scroll`/`drag` 僅在元素樹未提供更安全目標時使用。
+- macOS `drag`：除非使用者明確要求 `click_method:"global"` 等診斷行為，否則勿開 `OPEN_COMPUTER_USE_ALLOW_GLOBAL_POINTER_FALLBACKS=1`（無則 drag 僅 `app_post`，移動視窗/拖選文字/Finder 拖放無效）。
+
+**參考文件**：`references/installation.md`（安裝/MCP 安裝/macOS 權限）、`references/usage.md`（MCP config、CLI 呼叫、平台行為）、`references/troubleshooting.md`（權限/桌面 session/app 發現/動作失敗）。
+
+**注意**：本 skill 來源為第三方開源專案 `iFurySt/open-codex-computer-use`（MIT），僅供 Open Computer Use 之操作指引，因應 agent runtime 調整相關指令與 MCP 設定。
 
 **[回到目錄](#目錄)**
 
