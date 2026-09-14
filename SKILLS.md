@@ -29,6 +29,10 @@
 | [video-class-pipeline](#17-video-class-pipeline--課程影片分析管線) | 課程影片批式分析（OCR × Whisper × 關鍵幀 PDF）與編輯 |
 | [sd-webui-vae-fix](#19-sd-webui-vae-fix--a1111-檢查點vae切換修復) | 修復 A1111 檢查點/VAE「無法切換」（diffusers→LDM 格式修復） |
 | [open-computer-use](#20-open-computer-use--開源-computer-use-maclinuxwindows) | Open Computer Use MCP/CLI 的安裝、驗證、設定與操作 |
+| [comsol-mcp](#21-comsol-mcp--透過-opencode-操作-comsol-64) | 透過 opencode 的 COMSOL MCP 工具操作 COMSOL 6.4 |
+| [hcl-notes-forward](#22-hcl-notes-forward--hcl-notes-公布函直接轉寄自動化) | 自動化 HCL Notes「公布函系統通知」未讀信直接轉寄給群組 |
+| [meeting-transcript-summary](#23-meeting-transcript-summary--原始時間戳會議逐字稿--詳盡繁中會議彙總) | 將帶時間戳的會議逐字稿彙總成繁中主管會議紀錄 |
+| [pdf-reader](#24-pdf-reader--讀取-pdf-內容並輸出-markdown-摘要) | 讀取 PDF（文字/掃描 OCR）並輸出繁中 Markdown 摘要 |
 
 ---
 
@@ -570,6 +574,113 @@ py -m edge_tts --voice "zh-TW-HsiaoYuNeural" --text "你好。" --write-media "o
 **參考文件**：`references/installation.md`（安裝/MCP 安裝/macOS 權限）、`references/usage.md`（MCP config、CLI 呼叫、平台行為）、`references/troubleshooting.md`（權限/桌面 session/app 發現/動作失敗）。
 
 **注意**：本 skill 來源為第三方開源專案 `iFurySt/open-codex-computer-use`（MIT），僅供 Open Computer Use 之操作指引，因應 agent runtime 調整相關指令與 MCP 設定。
+
+**[回到目錄](#目錄)**
+
+---
+
+## 21. comsol-mcp — 透過 opencode 操作 COMSOL 6.4
+
+**用途**：文件化如何在本機透過 opencode 的 COMSOL MCP 工具（`comsol_*`）操作 COMSOL Multiphysics 6.4，包含 MCP server 的啟動規則、已驗證的建模→求解→評估工具序列，以及測試中發現的 client-API 陷阱。
+
+**適用時機**：使用者要求「用 COMSOL 建模」、「跑 COMSOL 仿真」、「使用 comsol MCP」，或要以 opencode MCP 工具操控 COMSOL。分析既有 `.mph` 檔案則用 `comsol-analyzer`。
+
+**前置需求**：
+- COMSOL 6.4（`C:\Program Files\COMSOL\COMSOL64\Multiphysics`）
+- Python venv（mph + jpype1）+ 本機 COMSOL MCP server fork（`wjc9011/COMSOL_Multiphysics_MCP`）
+
+**關鍵啟動規則**：
+- server **必須**以 `python -m launcher` 啟動（非 `-m src.server`）——後者 JPype JVM 會因 anyio/FastMCP 執行緒掛死。
+- `opencode.jsonc` 的 `comsol` entry 需設 command `-m launcher` 與 env `COMSOL_MCP_CORES=4`。
+
+**已驗證工具序列**：`comsol_comsol_start` → `comsol_model_create` → `comsol_model_create_component(space_dimension=3)` → `comsol_geometry_create(space_dimension=3)` → `comsol_geometry_add_block` → `comsol_geometry_build` → `comsol_physics_add_electrostatics`) → `comsol_mesh_create` → `comsol_study_create(study_type="Stationary")` → `comsol_study_solve` → `comsol_results_global_evaluate`。
+
+**Client-API 陷阱（測試實證）**：
+- physics 建立需帶 geometry tag：`comp.physics().create("es", "Electrostatics", "geom1")`，否則報「不支援空間維度: 0D」。
+- study step 需完整型別名稱（`"Stationary"`），短 id `"stat"` 失敗。
+- `HeatTransfer` 本機目前無法初始化（ASHRAE/sqlite 參考資料錯誤）；已驗證可用 `Electrostatics`、`SolidMechanics`、`LaminarFlow`。
+- `comsol_comsol_start` 會清除現有 session 與模型。
+- 冒煙測試：0.1×0.05×0.02 m 方塊，一面 5 V + 對面 ground → `es.normE` ≈ 343 V/m，求解約 3 s。
+
+**產出**：COMSOL 模型檔（`.mph`，可 `comsol_model_save` / `comsol_model_save_version` 保存）。
+
+**注意**：求解大型網格耗時，建議 `comsol_study_solve(wait=True, timeout=<s>)` 並由粗網格起步；不用時 `comsol_comsol_disconnect` 釋放 JVM 佔用的 CPU 核心。
+
+**[回到目錄](#目錄)**
+
+---
+
+## 22. hcl-notes-forward — HCL Notes 公布函直接轉寄自動化
+
+**用途**：自動化 HCL Notes（本機 Windows client）「公布函系統通知」未讀郵件的批次處理：依寄件者（$BySender）視圖中找到群組的未讀信件，逐封以「直接轉寄」寄給指定通訊錄群組，寄出後刪除原信。全程用 GDI 全螢幕截圖 + RapidOCR + SetCursorPos/mouse_event 螢幕絕對座標點擊的 UI 自動化。
+
+**適用時機**：使用者要求「轉寄公布函」、「批次處理 Notes 未讀通知」、「直接轉寄給群組」，或收到一份 HCL Notes 公布函批次作業。
+
+**前置需求**：
+- HCL Notes client（`C:\lotus\Notes\nlnotes.exe`，本案例 11.0.1FP5）
+- RapidOCR venv（Pillow + rapidocr_onnxruntime）
+- 本 skill `scripts\` 下的截圖/OCR/點擊/z-clean 工具鏈
+
+**硬性限制（務必先知道）**：
+- JNI/伺服器路徑全死：任何 server/DB 操作會觸發互動式 `Enter password`，`createSession(...,pw)` 報 `not a server`——**不要嘗試 JNI**。
+- 「直接轉寄」寄出後**不留「已傳送」副本**，不能用已傳送驗證，只能靠收件端或使用者確認。
+- 目標群組名稱欄**只能有一組**，重複按「新增(A)」= 寄兩次。
+
+**運作流程**（逐封：開信 → 直接轉寄 → 選群組 → 新增一次 → 確定 → 完成訊息確定 → 離開 → 刪除原信）：
+1. `zclean.ps1` + `SetForegroundWindow` 確保 Notes 在前景（常被其他視窗覆蓋）。
+2. 進信箱「依寄件者」視圖，展開 `公布函系統通知` 群組；紅字=未讀、黑字=已讀（`rowclass.py` 判讀）。
+3. 單擊選列 + Enter 開信，工具列按「直接轉寄」，在「選取名稱」對話框選群組（全螢幕截圖看得到，子視窗）。
+4. 「新增(A)」只按一次 → OCR 確認「名稱」欄只出現一次 → 「確定」→ 完成訊息按「確定」→ 按「離開」關閉。
+5. 重新 OCR 定位該列 → 單擊 + Delete 刪除原信。
+6. 回報已處理清單（主旨 + 日期）。
+
+**產出**：各封公布函已直接轉寄給指定群組，未讀數減少。
+
+**注意**：點擊座標以螢幕絕對座標為準（視窗內座標 + 視窗左上角）；對話框是子視窗需 GDI 全螢幕截圖；視圖為虛擬捲動，每次重新 OCR 定位；「離開」卡住時重啟 Notes 前先與使用者確認（有信箱鎖風險）。
+
+**[回到目錄](#目錄)**
+
+---
+
+## 23. meeting-transcript-summary — 原始時間戳會議逐字稿 → 詳盡繁中會議彙總
+
+**用途**：把語音辨識（Whisper/faster-whisper 等）產出的「每行一段、帶時間戳」會議逐字稿（`*_timestamp.txt`）彙總成**詳盡繁體中文主管會議紀錄**，條列各主管問題與部屬答覆，並列出指示／須完成目標與代辦事項，存成 `<BASE>_會議彙總.md`。
+
+**適用時機**：使用者提供 `*_timestamp.txt`（語音辨識逐字稿）並要求「彙總會議紀錄」、「條列各主管問題與部屬答覆」、「指示須完成目標與代辦事項」。
+
+**核心原則**：
+- 完整讀完才動筆：`read` 用 offset 分頁讀完整個檔案（可能數十萬字元）。
+- 語音辨識會誤聽：依專業上下文研判並在摘要中直接改正（開頭列出更正對照表），如 掌精爐→長晶爐、金擊→台積電、DeadHUB→GitHub 等。
+- 不失真：只依逐字稿內容撰寫，不自行發明會議未提到的資訊。
+- 詳盡：使用者要求更詳細時擴寫每個議題的背景、原因與論述脈絡。
+
+**輸出結構**：標題 → 引言（來源、領域、人員、時長、誤聽更正對照）→ 會議開場與人員動態 → 主管指示與部屬答覆（每議題一小節）→ 異常通報/簡報/產業情報/決策 → 目標與代辦事項表格（#、事項、負責/對象、期限）→ 備註。
+
+**產出**：`<BASE>_會議彙總.md`（UTF-8，寫完回讀校對）。
+
+**[回到目錄](#目錄)**
+
+---
+
+## 24. pdf-reader — 讀取 PDF 內容並輸出 Markdown 摘要
+
+**用途**：讀取指定的 `.pdf` 檔案，文字型 PDF 用 PyMuPDF 直接抽取（含中文），掃描/圖片型頁面自動渲染 PNG 以 RapidOCR 辨識，再以 opencc 轉為繁體中文，輸出成 `<檔名>.md` Markdown 摘要報告。
+
+**適用時機**：使用者要求「讀取 PDF」、「解析 PDF」、「PDF 內容是什麼」、「把 PDF 轉成文字」、「提取 PDF 重點」、提供 `.pdf` 要摘要或引用，或交付掃描版 PDF（無文字層）也要能讀。
+
+**前置需求**：
+- Python venv：PyMuPDF 1.28+、rapidocr-onnxruntime、opencc-python-reimplemented、Pillow
+- 本 skill 附**已驗證可跑**的 `extract_pdf.py`
+
+**運作流程**：
+1. `Test-Path` 確認 PDF 存在（中文/空格檔名用 `-LiteralPath`）。
+2. 執行 `extract_pdf.py <pdf> <輸出.md>`（選用 `--pages 1,3-8`、`--no-ocr`、`--dpi`）。
+3. Read 回讀 `.md` 校對（中文完整、斷頁合理；OCR 頁結構完整即可）。
+4. 若要摘要/重點，由 AI 依內容另產出整理，不把 Raw extract 當交付物。
+
+**產出**：`<檔名>.md`（UTF-8，開頭含來源/頁數/時間 meta）。
+
+**注意**：加密 PDF 需密碼（`fitz.open(src, password=...)`）；兩欄式排版可能只抽到一半，改用 `get_text("blocks")`；主控台 cp950 亂碼由腳本內 `sys.stdout.reconfigure(encoding="utf-8")` 處理；暫存 `_pdf_ocr_*.png` 自動清理。
 
 **[回到目錄](#目錄)**
 
