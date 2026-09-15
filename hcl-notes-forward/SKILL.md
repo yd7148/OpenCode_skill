@@ -132,3 +132,19 @@ Add-Type 'using System;using System.Runtime.InteropServices;public class W{[DllI
 - 「選取名稱」對話框：左欄群組列 `工三碳化矽專案組-03-全組(21)` 約 (1065,374)；「新增(A)」約 (1370,365)；「確定」約 (1579,524)；「取消」約 (1662,524)。
 - 完成訊息「系統已完成轉發作業!」確定：約 (982,590)。
 - 已傳送視圖頂端刷新：F9。
+
+## 本機實測筆記（2026-09-15，FGES 公布函直接轉寄，全程驗證通過）
+
+本機環境四壁：Notes 前有「OpenCode 終端機 + Edge(Oracle Fusion)」兩個不受 zclean 控制的覆蓋源，將 Notes 移右側一勞永逸。
+
+- **OpenCode 終端機會搶焦點**：每次 bash 工具執行後 TUI 回到前景，會覆蓋螢幕左側（實測 `x0-733`、全高），點擊若落在該區=點錯。
+- **zclean 無效案例**：ignore 清單含 `OpenCode`/`chrome`/`msedge`，Edge(Oracle Fusion 表單)會留在原位遮住 Notes；光 zclean 不夠。
+- **對策＝把 Notes 整個移到右側**：`SetWindowPos(nlnotes, TOPMOST, 780,0,1140,1035, 0x0040)` + `SetForegroundWindow`，與終端機 x0-733 完全不重疊；對話框是 Notes 子視窗也跟著右移，全部點擊都在安全區。
+- **每次點擊前同命令重述**：在同一個 PowerShell 命令內 `SetWindowPos(TOPMOST)+SetForegroundWindow+sleep+click`，不要跨工具呼叫依賴前景狀態。
+- **Notes 視窗位置會漂移**：本流程實測 winlist 依序回報 (640,0)→(470,21)→(953,0)→(780,0)；❌ 死記座標，✅ 每次 `GetWindowRect` 現量，或先把視窗固定到右側後再算（winX、winY 直接加視窗左上角）。
+- **存檔目錄要先建立**：`capture_win.ps1` / GDI 全螢幕存 PNG 前，輸出目錄若不存在，`$bmp.Save()` 會報「在 GDI+ 中發生泛型錯誤」且存不出檔。
+- **開信後視圖會變**：開過信後返回列表，新信可能插到頂、未讀數變動、列位重排；刪除前先 Ctrl+Home 回頂並重新 OCR 定位（本例 FGES 列從第 1 列變第 2 列）。
+- **雙重確認列身分**：OCR 中文常錯字，判斷列以「主旨關鍵字（如 FGES-T-SSF42）」+「日期時間（2026/09/15 11:07）」雙重比對，避免刪錯信。
+- **「離開」未必能點**：轉寄後 memo 工具列小字 OCR 認不到，點定位不准；改用 memo 分頁右上角 **X**（視窗內 ~(548,94)）或鍵盤 Escape 關閉 memo。
+- **完成訊息實測**：「系統已完成轉發作業!」確定 (982,590) 與速查一致；出現此訊息即代表轉寄已送出。
+- **刪除原信**：重新 OCR 定位列 → 單擊選列 → Delete；實測 Notes 11 未彈確認對話框即消失；刪後再 OCR 確認目標列消失、鄰近新信仍在（未誤刪）。
