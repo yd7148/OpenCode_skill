@@ -65,6 +65,14 @@ Use yt-dlp through Python. Three hard requirements learned in this environment:
   Fallback if n-challenge still fails: `-f 18` (360p single file, fine for short promo clips).
   Cookies via browser_cookie3 export (see yt-batch-download skill); android client rejects cookies.
 
+**YouTube cookie export for download** (when cookies are needed, e.g. age-gated/private videos or n-challenge):
+```powershell
+$env:PATH = "C:\Users\N000149839\opencode-tools;" + $env:PATH
+py -c "import browser_cookie3,os; p=os.path.join(os.environ['TEMP'],'yt_cookies.txt'); cj=browser_cookie3.chrome(domain_name='.youtube.com'); cj.save(p,ignore_discard=True,ignore_expires=True); print('saved',p)"
+# Then pass to yt-dlp: --cookies "$env:TEMP\yt_cookies.txt"
+```
+Note: yt-dlp's built-in browser cookie extraction (`--cookies-from-browser chrome`) often fails on Windows; always export via `browser_cookie3` first.
+
 **Short-video variant (<3 min promo/Shorts, e.g. 2026_06_playwirght 除霉劑 clip)**: download
 `best[height<=720]`, extract frames at `fps=1/2` (~65 frames for 2min), OCR all in one
 ProcessPoolExecutor run, and transcribe the whole wav in a single faster-whisper call
@@ -225,6 +233,22 @@ $ff = "<work>\ffmpeg_pkg\ffmpeg-9.0-essentials_build\bin\ffmpeg.exe"
   - `boxes`: list of bounding box coordinates `[[[x1,y1],[x2,y2],[x3,y3],[x4,y4]], ...]`
   - This is the **wrapped format** from `run_ocr.py`; the raw RapidOCR output is `[{"box":[[x,y],...],"text":"...","score":0.9}, ...]`.
 
+**GPU OCR alternative — `rapidocr_openvino` (measured 2026-09)**: when the venv has `rapidocr-openvino` (separate pip package from `rapidocr-onnxruntime`), use it for GPU-accelerated OCR on Intel UHD 770:
+```python
+from rapidocr_openvino import RapidOCR
+from openvino_infer_session import OpenVINOInferSession
+# Monkeypatch to force GPU (default is CPU)
+OrigInit = OpenVINOInferSession.__init__
+def patched_init(self, model_path, device_name='GPU', **kw):
+    OrigInit(self, model_path, device_name=device_name, **kw)
+OpenVINOInferSession.__init__ = patched_init
+ocr = RapidOCR()
+result = ocr(img)  # returns [box, text, score_str] — score is STRING, not float!
+```
+- **Return format difference**: `rapidocr_openvino` returns `[box, text, score_str]` (list of 3 items per detection), NOT the dict format `[{"box":..., "text":..., "score":...}]` from `rapidocr-onnxruntime`. Update `run_ocr.py` accordingly.
+- Speed: ~1 s/frame on Intel UHD 770 GPU vs ~5 s/frame CPU — 384 frames in ~334 s (vs ~32 min CPU).
+- Score filtering: `float(score_str) < 0.5` to drop low-confidence detections.
+
 ### 3. Whisper transcription — Option A: faster-whisper (RECOMMENDED, CPU int8)
 - Use venv_fw (see Prerequisites). Pattern `run_asr.py`:
   ```python
@@ -366,6 +390,12 @@ Hallucinations: repeated text ("好好好…", "謝謝大家") + YouTube CTA on 
   builder, NOT in this file — keep the grouping script dumb, put curation in the PDF step.
 - Dump `slides.json` to a UTF-8 `slides_text.txt` for the agent to read (console is cp950 garbled).
 
+**Timeline correction via transcript keyword anchors (measured 2026-09)**: when the OCR-derived timeline drifts from actual speech timing (often 1–5 min), use ASR transcript to produce accurate anchors:
+1. Grep the transcript for key topic words (e.g. "排班", "勞基法", "Canvas", "RTCCF", "Codex", "桌面版") and extract the preceding `-- HH:MM:SS` timestamp.
+2. Build a keyword→timestamp mapping; use these to align the timeline table rows (e.g. "排班範例 starts at 02:20:30 original time").
+3. The corrected timeline uses **原片時間為主** with 2x = orig÷2; update all references in the report.
+4. Also use these anchors to write the **主講口述重點（逐字稿節錄）** section (see §5 below).
+
 ### 4b. PDF document cross-referencing (when reference PDFs are provided)
 If the user provides PDF reference materials (e.g. lecture slides, technical guides), extract text and cross-reference with OCR + ASR:
 
@@ -483,7 +513,29 @@ Font: `C:\Windows\Fonts\msjh.ttc` via `TTFont("CJK", ..., subfontIndex=0)`.
 - Dark frames at the very start of a meeting recording are the real video content (black screen) — do not
   "fix" them, just label them.
 - When the user asks for a "豐富/滿版" version of an earlier plain key-frame PDF, keep the old file, produce
-  `-v2.pdf`, and update the report's 附註 file table to point at v2.
+      `-v2.pdf`, and update the report's 附註 file table to point at v2.
+
+**Keyframe curation pattern (2026-09)**: instead of a dict of per-slide titles, maintain a `KEYFRAMES` list of curated tuples in the PDF builder script:
+```python
+KEYFRAMES = [
+    ("frame_%05d.png", frame_idx, t_2x, t_orig, "標題", "OCR摘要文字", "★老師重點"),
+    ...
+]
+```
+This keeps curation explicit and version-controllable; the script iterates `KEYFRAMES` to produce one page per entry. Pair with `KEYMAP = {idx: comment}` for quick lookup during curation.
+
+**Alternative report format — 重點整理.md (course study guide)**: for course videos where the goal is a study guide rather than a full analysis report, use this simplified structure:
+```
+# <DATE> <时段>《課程名稱》課程重點整理
+## 一、課程資訊（table: 主題/教師/日期/長度/素材）
+## 二、課程時軸（table, 原片時間為主，附2x時間）
+## 三、課程重點內容（numbered subsections with details）
+## 四、主講口述重點（逐字稿節錄，附精確時間戳）
+## 五、與教材對照表
+## 六、今日收穫總結
+## 七、附註（檔案清單）
+```
+Build this in preference to the full analysis structure when the user asks for "重點整理".
 
 ## Environment gotchas (learned the hard way — respect these)
 - **Network sits behind a Fortinet proxy** (`HTTP(S)_PROXY=http://n000149839:...@10.3.159.1:80`).
