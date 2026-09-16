@@ -18,12 +18,13 @@ metadata:
 
 | 項目 | 路徑 |
 |------|------|
-| 本機 skills 目錄 | `~/.config/opencode/skills/` |
-| GitHub repo 本機 clone | `~/OpenCode_skill` |
-| GitHub 遠端 | `git@github.com:yd7148/OpenCode_skill.git`（SSH） |
+| 本機 skills 目錄 | `D:\80-Opnecode\.opencode\skills\`（Windows；本次同步的集合） |
+| GitHub repo 本機 clone | `C:\Users\N000149839\OpenCode_skill` |
+| GitHub 遠端 | `https://github.com/yd7148/OpenCode_skill.git`（HTTPS；`gh auth` token / credential manager，**非 SSH**） |
 | 共用說明文件 | `README.md`、`SKILLS.md`（repo 根目錄） |
 
-前置需求：SSH key 已加至 GitHub（`ssh -T git@github.com` 驗證通過），repo 以 SSH remote clone 到 `~/OpenCode_skill`。
+本機環境：Windows PowerShell 5.1，**沒有 `rsync`**；用 `Copy-Item`/`robocopy` 取代 rsync 語法。
+遠端以 HTTPS 驗證（git 已設定 `credential.helper=manager` + `gh auth status` 登入 yd7148）。
 
 ## 通用規則（兩個方向都適用）
 
@@ -36,54 +37,54 @@ metadata:
 
 把 GitHub 上最新的 skill 內容拉下來，覆蓋到本機使用目錄。
 
-```bash
+```powershell
 # 1. 更新本機 clone
-git -C ~/OpenCode_skill pull origin main
+git -C "$env:USERPROFILE\OpenCode_skill" pull origin main
 
 # 2. 把 repo 中各 skill 同步到本機使用目錄（排除虛擬環境）
-SRC=~/OpenCode_skill; DST=~/.config/opencode/skills
-for d in "$SRC"/*/; do
-  name=$(basename "$d")
-  [ "$name" = ".git" ] && continue
-  rsync -a --exclude='.venv/' --exclude='__pycache__/' "$d/" "$DST/$name/"
-done
-
+$SRC = "$env:USERPROFILE\OpenCode_skill"; $DST = "D:\80-Opnecode\.opencode\skills"
+Get-ChildItem -LiteralPath $SRC -Directory | Where-Object { $_.Name -ne ".git" } | ForEach-Object {
+  $name = $_.Name
+  Copy-Item -Path (Join-Path $_.FullName "*") -Destination (Join-Path $DST $name) -Recurse -Force `
+    -Exclude ".venv","__pycache__"
+}
 # 3. 同步根目錄說明文件
-cp "$SRC/README.md" "$DST/README.md"
-cp "$SRC/SKILLS.md" "$DST/SKILLS.md"
+Copy-Item "$SRC\README.md" "$DST\README.md" -Force
+Copy-Item "$SRC\SKILLS.md" "$DST\SKILLS.md" -Force
 ```
 
 ## 方向二：上傳（本機 → GitHub）
 
 把本機新增或修改的 skill 提交並 push 到 GitHub。
 
-```bash
+```powershell
 # 1. 先確認本機 clone 是最新
-git -C ~/OpenCode_skill fetch origin && git -C ~/OpenCode_skill pull origin main
+git -C "$env:USERPROFILE\OpenCode_skill" fetch origin; git -C "$env:USERPROFILE\OpenCode_skill" pull origin main
 
 # 2. 把本機 skills 同步進 clone（排除虛擬環境）
-SRC=~/.config/opencode/skills; DST=~/OpenCode_skill
-for d in "$SRC"/*/; do
-  name=$(basename "$d")
-  [ -n "$(ls -A "$d")" ] || { echo "SKIP 空目錄: $name"; continue; }
-  rsync -a --exclude='.venv/' --exclude='__pycache__/' "$d/" "$DST/$name/"
-done
-
+$SRC = "D:\80-Opnecode\.opencode\skills"; $DST = "$env:USERPROFILE\OpenCode_skill"
+Get-ChildItem -LiteralPath $SRC -Directory | ForEach-Object {
+  $name = $_.Name; $dest = Join-Path $DST $name
+  if ((Get-ChildItem -LiteralPath $_.FullName -Force | Measure-Object).Count -eq 0) { "SKIP 空目錄: $name"; return }
+  Copy-Item -Path (Join-Path $_.FullName "*") -Destination $dest -Recurse -Force `
+    -Exclude ".venv","__pycache__"
+}
 # 3. 更新 repo 根 README.md / SKILLS.md 到 clone（保持說明一致）
-cp "$SRC/README.md" "$DST/README.md"
-cp "$SRC/SKILLS.md" "$DST/SKILLS.md"
+Copy-Item "$SRC\README.md" "$DST\README.md" -Force
+Copy-Item "$SRC\SKILLS.md" "$DST\SKILLS.md" -Force
 
-# 4. 檢視變更、commit、push
-cd ~/OpenCode_skill
+# 4. 檢視變更、commit、push（HTTPS，遠端已是 https://...OpenCode_skill.git）
+Set-Location "$env:USERPROFILE\OpenCode_skill"
 git add -A
 git status --short
-git -c user.name="yd7148" -c user.email="yd7148@hotmail.com.tw" \
-    commit -m "sync skills"
+git -c user.name="yd7148" -c user.email="yd7148@hotmail.com.tw" commit -m "sync skills"
 git push origin main
 ```
 
 ## 注意事項
 
-- `.venv` 是各 skill 在本機的 python 虛擬環境，**永不**提交（已被各 skill 的 `.gitignore` 與 rsync 排除遮蔽）。
+- `.venv` 是各 skill 在本機的 python 虛擬環境，**永不**提交（已被各 skill 的 `.gitignore` 與上面的
+  Copy-Item 排除遮蔽）。
 - 若新增了 repo 沒有的 skill，記得同步更新 `README.md` 目錄表與 `SKILLS.md` 對應章節。
-- push 用 SSH（`origin` remote 已設為 SSH URL），不需 token；可用 `ssh -T git@github.com` 確認認證是否有效。
+- push 用 HTTPS（`origin` remote 已設為 https URL），靠 `gh auth` token / Git Credential Manager 認證；
+  可用 `gh auth status` 確認登入狀態。

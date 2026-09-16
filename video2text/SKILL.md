@@ -385,7 +385,14 @@ Hallucinations: repeated text ("好好好…", "謝謝大家") + YouTube CTA on 
 - Each group: `slide`, `start/end frame idx`, `start_time_2x / start_time_orig`, `frame_count`,
   `rep_frame` (= the frame with the LONGEST total OCR text length), `texts` (grouped OCR lines).
 - Time convention kept per project (2026-09-07: interval 15s → 346 frames → **95 slide groups** for a
-  5190s / 2x video; frame i ↔ 2x `(i-1)*15s` ↔ orig `(i-1)*30s`).
+  5190s / 2x video; frame i ↔ 2x `(i-1)*15s` ↔ orig `(i-1)*30s`). 2026-09-09 晚上: 371 frames → **97
+  slide groups** on the same '15s × 2x' convention.
+- **REUSE-existing-GPU-artifacts pattern (measured 2026-09-09)**: when the target BASE already has
+  completed `frames/<BASE>/`, `ocr/<BASE>/*.json`, and `asr/<BASE>/u_*.json` from a prior full run, do
+  **NOT** re-OCR/re-ASR — go straight to slide grouping → 重點整理.md → keyframes-v2 PDF (≈25 min total).
+  Verify artifact integrity first (frame JSON count == frame count, ASR units complete), then mine
+  keyword-anchored quotes from `transcript_zh_<BASE>.txt` with `rg -- 時間戳`, select KEYFRAMES from the
+  `slides.json` rep_frames, and build the PDF. This turns a whole-day GPU job into a fast desk job.
 - Chapter key points live in a hand-maintained `NOTES = {slide_no: (title, key_text)}` dict in the PDF
   builder, NOT in this file — keep the grouping script dumb, put curation in the PDF step.
 - Dump `slides.json` to a UTF-8 `slides_text.txt` for the agent to read (console is cp950 garbled).
@@ -510,6 +517,17 @@ Font: `C:\Windows\Fonts\msjh.ttc` via `TTFont("CJK", ..., subfontIndex=0)`.
 - Verify WITHOUT image input (model cannot read images here): render pages via PyMuPDF `get_pixmap(dpi=72)`
   and average RGB per page (`statistics.mean` over samples) — expect bright pages ≈170-220, truly-black
   source frames ≈7.
+- **Preferred 2026-09-09 verification — PyMuPDF text-layer instead of pixel stats**: `pymupdf` is installed
+  in the build venv (`_maidate_work\venv`), so verify the PDF structurally instead of guessing from pixels:
+  `pymupdf.open(out)` → `len(doc)` == expected page count, per page `pg.get_text()` contains the必備 panel
+  strings (課綱 title, `★ 老師重點`, `OCR 辨識文字`, `幀 frame_`, `2x 時間`, `原片`), and
+  `len(pg.get_images(full=True)) >= 1` proves the background frame is embedded. This catches missing
+  pages / missing images / missing panel text / wrong-frame embedding (the reportlab filename-cache bug)
+  far more reliably than RGB averaging. Dump `pg.get_text()` per sampled page to spot-check Chinese + the
+  correct `幀 frame_XXXXX` number.
+- **msjh.ttc lacks the `≈` glyph (hit 2026-09-09)**: panel text using `≈` renders as a blank/fallback and
+  the text layer drops it (`英文 1 單字≈1.3 Token` showed up with `≈` missing). Replace `≈` with `約` in
+  NOTES/OCR strings before drawing; re-verify via `pg.get_text()`.
 - Dark frames at the very start of a meeting recording are the real video content (black screen) — do not
   "fix" them, just label them.
 - When the user asks for a "豐富/滿版" version of an earlier plain key-frame PDF, keep the old file, produce
