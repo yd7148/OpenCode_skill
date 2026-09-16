@@ -32,6 +32,7 @@ OpenCode 本機 Skills 收藏庫。所有 skill 皆為 MIT 授權，適用於 op
 | `hcl-notes-forward` | HCL Notes 公布函「直接轉寄」給群組（UI 自動化：GDI 截圖 + RapidOCR + 座標點擊） | Windows：HCL Notes client + RapidOCR venv |
 | `meeting-transcript-summary` | 原始時間戳會議逐字稿彙總成詳盡繁中主管會議紀錄 | 無（opencode 內建工具） |
 | `pdf-reader` | 讀取 PDF（文字抽取 / 掃描 OCR）輸出繁中 Markdown 摘要 | Python venv：PyMuPDF、RapidOCR、opencc |
+| `cv-job-application` | 中華電信／台積電線上履歷投遞自動化（持久化 Chrome 登入、報名表填寫、附件上傳、PDF 去 TSMC 化） | Playwright + ddddocr + EasyOCR + pymupdf + fpdf2 + python-pptx（Windows） |
 
 ## 安裝
 
@@ -56,3 +57,4 @@ python3 -m venv .venv
 - **重型機器學習（每個 skill 有專用 venv）**：`video2text`、`pdf-exam-extractor`、`video-class-pipeline`
 - **需 WebUI 環境**：`sd-webui-vae-fix`（用 webui 內建 Python：torch + safetensors，抽取本機大檢查點的 VAE 並以 `/sdapi/v1` API 驗證）
 - **需 npm 全域工具**：`open-computer-use`（`npm i -g open-computer-use`，macOS 14+ 需授權 Accessibility + Screen Recording）
+- **需瀏覽器自動化 + OCR**：`cv-job-application`（Playwright CDP + ddddocr + EasyOCR，需持久化 Chromium 設定檔保存登入）

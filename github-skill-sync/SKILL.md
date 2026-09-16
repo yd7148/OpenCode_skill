@@ -18,8 +18,8 @@ metadata:
 
 | 項目 | 路徑 |
 |------|------|
-| 本機 skills 目錄 | `D:\80-Opnecode\.opencode\skills\`（Windows；本次同步的集合） |
-| GitHub repo 本機 clone | `C:\Users\N000149839\OpenCode_skill` |
+| 本機 skills 目錄 | `C:\Users\4pins\.config\opencode\skills\`（Windows；本次同步的集合） |
+| GitHub repo 本機 clone | `C:\Users\4pins\OpenCode_skill` |
 | GitHub 遠端 | `https://github.com/yd7148/OpenCode_skill.git`（HTTPS；`gh auth` token / credential manager，**非 SSH**） |
 | 共用說明文件 | `README.md`、`SKILLS.md`（repo 根目錄） |
 
@@ -42,7 +42,7 @@ metadata:
 git -C "$env:USERPROFILE\OpenCode_skill" pull origin main
 
 # 2. 把 repo 中各 skill 同步到本機使用目錄（排除虛擬環境）
-$SRC = "$env:USERPROFILE\OpenCode_skill"; $DST = "D:\80-Opnecode\.opencode\skills"
+$SRC = "$env:USERPROFILE\OpenCode_skill"; $DST = "C:\Users\4pins\.config\opencode\skills"
 Get-ChildItem -LiteralPath $SRC -Directory | Where-Object { $_.Name -ne ".git" } | ForEach-Object {
   $name = $_.Name
   Copy-Item -Path (Join-Path $_.FullName "*") -Destination (Join-Path $DST $name) -Recurse -Force `
@@ -62,7 +62,7 @@ Copy-Item "$SRC\SKILLS.md" "$DST\SKILLS.md" -Force
 git -C "$env:USERPROFILE\OpenCode_skill" fetch origin; git -C "$env:USERPROFILE\OpenCode_skill" pull origin main
 
 # 2. 把本機 skills 同步進 clone（排除虛擬環境）
-$SRC = "D:\80-Opnecode\.opencode\skills"; $DST = "$env:USERPROFILE\OpenCode_skill"
+$SRC = "C:\Users\4pins\.config\opencode\skills"; $DST = "$env:USERPROFILE\OpenCode_skill"
 Get-ChildItem -LiteralPath $SRC -Directory | ForEach-Object {
   $name = $_.Name; $dest = Join-Path $DST $name
   if ((Get-ChildItem -LiteralPath $_.FullName -Force | Measure-Object).Count -eq 0) { "SKIP 空目錄: $name"; return }

@@ -33,6 +33,7 @@
 | [hcl-notes-forward](#22-hcl-notes-forward--hcl-notes-公布函直接轉寄自動化) | 自動化 HCL Notes「公布函系統通知」未讀信直接轉寄給群組 |
 | [meeting-transcript-summary](#23-meeting-transcript-summary--原始時間戳會議逐字稿--詳盡繁中會議彙總) | 將帶時間戳的會議逐字稿彙總成繁中主管會議紀錄 |
 | [pdf-reader](#24-pdf-reader--讀取-pdf-內容並輸出-markdown-摘要) | 讀取 PDF（文字/掃描 OCR）並輸出繁中 Markdown 摘要 |
+| [cv-job-application](#25-cv-job-application--履歷投遞自動化中華電信台積電) | 中華電信／台積電線上履歷投遞自動化（持久化登入、填表、附件、去識別化） |
 
 ---
 
@@ -686,9 +687,46 @@ py -m edge_tts --voice "zh-TW-HsiaoYuNeural" --text "你好。" --write-media "o
 
 ---
 
+## 25. cv-job-application — 履歷投遞自動化（中華電信／台積電）
+
+**功能**：以 Playwright + CDP 自動化操作中華電信人才招募網（`https://rmis.cht.com.tw/portal/jobs/`），完成線上報名表填寫、附件上傳與完成度檢核；並處理台積電人事資料表的去識別化（TSMC 字樣改為中華電信）與自我介紹簡報轉 PDF。
+
+**適用時機**：使用者要求投遞／填寫中華電信或台積電線上履歷、沿用已保存的 Chrome 登入資訊登入、把台積電人事資料表 PDF 改成中華電信版、整理 `E:\01-Project\2026-09-CV` 履歷專案（`01-原始資料` / `02-TSMC` / `03-中華電信`）。
+
+**前置條件**：
+- PowerShell 5.1（Windows）
+- Python 3.12：Playwright、ddddocr、easyocr、pymupdf、Pillow、fpdf2、python-pptx
+- Chromium：`C:\Users\4pins\AppData\Local\ms-playwright\chromium-1234\chrome-win64\chrome.exe`
+- **持久化設定檔**：`E:\01-Project\2026-09-CV\03-中華電信\.pw-profile\`（保存中華電信帳密 + Outlook 登入，勿刪）
+
+**運作流程**：
+1. 以 `--remote-debugging-port=9223 --remote-allow-origins=* --disable-extensions --user-data-dir=<.pw-profile>` 啟動 Chromium（detached）
+2. Python 以 `connect_over_cdp("http://127.0.0.1:9223")` 連線，**不自行 launch**
+3. 登入：`do_login.py` → 抓 `captcha.png` → `captcha_ocr.py`（ddddocr）填驗證碼 → `outlook_check.py` 從 Outlook 讀 OTP 填 `#idoptpw`
+4. 依序填表：學歷 → 工作經驗 → 專長證照 → 自傳 → 在校成績 → 親屬 → 上傳附件
+5. 附件：由履歷表抽取大頭照、簡報改字並轉 PDF、履歷表 PDF 去 TSMC 化
+6. 以 `viewbiog.jsp` 檢核完成度
+
+**產出**：`03-中華電信/out/`（個人照片、履歷表中華電信版、自我介紹簡報 PDF/PPTX）、`03-中華電信/中華電信履歷填寫紀錄.md`
+
+**注意**：
+- **絕不呼叫 `browser.close()`**（會關掉使用者的瀏覽器）；要關用 `taskkill /PID <主行程>`（WM_CLOSE 優雅結束）
+- **絕不刪除 `.pw-profile/`**；搬移資料夾前必須先關閉 Chromium，登入狀態會保留
+- 網站閒置約 30 分鐘登出；每次登入都需重做圖形驗證碼 OCR
+- 欄位有 Big5 byte 上限（中文 1 字 = 2 bytes，即 `maxlength`），超過會被**後端無聲截斷**，存檔後須重載確認
+- 姓名「禎」= `U+798E`（`U+7A4E` 是「穎」）
+- 主控台中文亂碼 → 寫入 UTF-8 JSON 再讀；勿用 PowerShell `>` 導向（變 UTF-16）
+- PowerShell here-string 不解析 `\uXXXX` → 含中文路徑的 Python 寫成 `.py` 檔執行
+- EasyOCR/cv2 不能讀非 ASCII 檔名；網站附件僅收 `pdf/jpg/png` ≤10 MB
+- 掃描頁去識別化需 render 高 DPI → EasyOCR bbox → PIL 白底重繪 → 換頁面影像
+
+**[回到目錄](#目錄)**
+
+---
+
 ## 安裝方式
 
-將任一 skill 資料夾複製到 `~/.config/opencode/skills/<skill-name>/`（或 `.opencode/skills/<skill-name>/`），或直接放入本機 `D:\80-Opnecode\.opencode\skills\` 即可由 opencode 自動載入。
+將任一 skill 資料夾複製到 `C:\Users\4pins\.config\opencode\skills\<skill-name>\`（或專案的 `.opencode/skills/<skill-name>/`）即可由 opencode 自動載入。
 
 ## 授權
 
