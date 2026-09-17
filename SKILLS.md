@@ -1,6 +1,6 @@
-# OpenCode Skills 技能說明
+# OpenCode Skills 說明文件
 
-本文件詳細說明本儲存庫中每支 OpenCode Skill 的功能、適用時機、運作流程與產出。
+本文件詳細說明本收藏庫中每支 OpenCode Skill 的功能、適用時機、運作流程與產出。
 所有 skill 皆為 **MIT 授權**，適用於 **opencode agents**，作業系統為 **Windows（PowerShell 5.1）**。
 
 ---
@@ -9,687 +9,430 @@
 
 | Skill | 一句話說明 |
 |-------|-----------|
-| [comsol-analyzer](#1-comsol-analyzer--comsol-multiphysics-mph-模型分析) | 解析 COMSOL .mph 模型，產出繁體中文分析報告 |
-| [dwg-to-dxf](#2-dwg-to-dxf--dwg-轉-dxf-與詳細解析) | DWG 轉 DXF 並進行幾何/圖層/尺寸詳細分析 |
-| [md-to-pdf](#3-md-to-pdf--繁中-markdown--a4-pdf) | 將繁體中文 Markdown 離線渲染成精美 A4 PDF |
-| [v2t-report-summary](#4-v2t-report-summary--重點彙總-ver2) | 將逐分鐘影片報告濃縮成乾淨的繁體中文重點摘要 |
-| [video-2x-speed](#5-video-2x-speed--影片加速轉檔) | 以 ffmpeg 將影片加速為 200% 播放速度 |
-| [video2text](#6-video2text--影片分析管線) | 影片畫面 OCR × 語音 Whisper → Markdown + 關鍵幀 PDF |
-| [yt-batch-download](#7-yt-batch-download--youtube-批次下載) | 批次下載 1080p YouTube 影片 |
-| [yt-upload](#8-yt-upload--youtube-影片上傳發布) | 透過 Playwright 上傳並公開發布 YouTube 影片 |
-| [tts](#9-tts--文字轉語音) | 用 edge-tts 將文字轉成繁體中文等語音檔 |
-| [taobao-order-extract](#10-taobao-order-extract--淘寶訂單資料提取整理) | 從淘寶訂單 Excel 提取訂單資料並比對物流重量 |
-| [taobao-cost-fill](#18-taobao-cost-fill--淘寶費用計算明細填寫) | 依訂單卡片填寫淘寶費用計算明細 R0 樣板並存成 R1 |
-| [github-skill-sync](#11-github-skill-sync--本機-github-skills-同步) | 雙向同步本機 skills 與本 GitHub 收藏庫 |
-| [webwright](#12-webwright--瀏覽器-agent) | code-as-action 瀏覽器 agent（Playwright 開 Firefox） |
-| [web-tools](#13-web-tools--本機網頁工具環境) | 本機 Crawl4AI / Webwright 環境筆記 |
-| [pdf-exam-extractor](#14-pdf-exam-extractor--考題pdf擷取與ocr) | 考題 PDF 逐題裁剪成圖 + EasyOCR 轉 Markdown |
-| [taipower-exam-solver](#15-taipower-exam-solver--國營事業考題解題) | 國營事業招考 PDF 考題、官方解答與逐步解題 |
-| [takeout-exif-merge](#16-takeout-exif-merge--google-相簿-exif-合併) | 將 Takeout JSON EXIF 合併回同名媒體檔 |
-| [video-class-pipeline](#17-video-class-pipeline--課程影片分析管線) | 課程影片批式分析（OCR × Whisper × 關鍵幀 PDF）與編輯 |
-| [sd-webui-vae-fix](#19-sd-webui-vae-fix--a1111-檢查點vae切換修復) | 修復 A1111 檢查點/VAE「無法切換」（diffusers→LDM 格式修復） |
-| [open-computer-use](#20-open-computer-use--開源-computer-use-maclinuxwindows) | Open Computer Use MCP/CLI 的安裝、驗證、設定與操作 |
-| [comsol-mcp](#21-comsol-mcp--透過-opencode-操作-comsol-64) | 透過 opencode 的 COMSOL MCP 工具操作 COMSOL 6.4 |
-| [hcl-notes-forward](#22-hcl-notes-forward--hcl-notes-公布函直接轉寄自動化) | 自動化 HCL Notes「公布函系統通知」未讀信直接轉寄給群組 |
-| [meeting-transcript-summary](#23-meeting-transcript-summary--原始時間戳會議逐字稿--詳盡繁中會議彙總) | 將帶時間戳的會議逐字稿彙總成繁中主管會議紀錄 |
-| [pdf-reader](#24-pdf-reader--讀取-pdf-內容並輸出-markdown-摘要) | 讀取 PDF（文字/掃描 OCR）並輸出繁中 Markdown 摘要 |
+| [comsol-analyzer](#1-comsol-analyzer) | Analyze COMSOL Multiphysics .mph model f |
+| [comsol-linsolver-benchmark](#2-comsol-linsolver-benchmark) | A/B benchmark a COMSOL Multiphysics mode |
+| [comsol-mcp](#3-comsol-mcp) | Drive COMSOL Multiphysics 6.4 on this ma |
+| [dwg-to-dxf](#4-dwg-to-dxf) | Convert AutoCAD DWG files to DXF format  |
+| [github-skill-sync](#5-github-skill-sync) | 同步本機 OpenCode skills（~/.config/opencode/ |
+| [hcl-notes-forward](#6-hcl-notes-forward) | 自動化 HCL Notes（本機 Windows client）的「公布函系統通 |
+| [md-to-pdf](#7-md-to-pdf) | 將繁體中文 Markdown 說明檔渲染成排版精美的 A4 多頁 PDF（標題、 |
+| [meeting-transcript-summary](#8-meeting-transcript-summary) | 將一場會議的「原始時間戳逐字稿」（*_timestamp.txt，語音辨識輸出） |
+| [open-computer-use](#9-open-computer-use) | Platform-neutral guidance for using Open |
+| [pdf-exam-extractor](#10-pdf-exam-extractor) | Use when the user asks to extract indivi |
+| [pdf-reader](#11-pdf-reader) | 讀取 PDF 檔案的內容並輸出成 Markdown 摘要報告。文字型 PDF 用 |
+| [sd-webui-vae-fix](#12-sd-webui-vae-fix) | 修復 AUTOMATIC1111 Stable Diffusion WebUI（ |
+| [taipower-exam-solver](#13-taipower-exam-solver) | Use when the user asks to process 國營事業招考 |
+| [takeout-exif-merge](#14-takeout-exif-merge) | Use when the user asks to merge Google P |
+| [taobao-cost-fill](#15-taobao-cost-fill) | 將「淘寶費用計算明細」Excel（*-taobao-淘寶-R0.xlsx）依訂單 |
+| [taobao-order-extract](#16-taobao-order-extract) | 從淘寶導出的「訂單數據.xlsx」Excel 檔案提取訂單資料（商品名稱、實付金 |
+| [tts](#17-tts) | 使用 Microsoft Edge 的 edge-tts 將文字轉成高品質語音（ |
+| [v2t-report-summary](#18-v2t-report-summary) | Summarize a per-minute video-analysis re |
+| [video-2x-speed](#19-video-2x-speed) | Convert a recorded video to 200% playbac |
+| [video-class-pipeline](#20-video-class-pipeline) | Use when the user asks to analyze/proces |
+| [video2text](#21-video2text) | Analyze recorded meeting / online-confer |
+| [web-tools](#22-web-tools) | 紀錄本機 web 工具環境（Crawl4AI 爬蟲、Webwright 瀏覽器  |
+| [webwright](#23-webwright) | Solve a user-specified web task code-as- |
+| [yt-batch-download](#24-yt-batch-download) | 批次下載 YouTube 影片（1080p 最高畫質），支援自訂檔名、cooki |
+| [yt-upload](#25-yt-upload) | 透過 Playwright 操作 YouTube Studio，將本機影片上傳並 |
 
 ---
 
-## 1. comsol-analyzer — COMSOL Multiphysics .mph 模型分析
+## 1. comsol-analyzer
 
-**用途**：剖析 COMSOL Multiphysics 的 `.mph` 模型檔案，產出詳細的繁體中文 Markdown 分析報告，涵蓋模型詮釋資料、參數、物理場、幾何、材料、研究與網格。
+**名稱**：comsol-analyzer — COMSOL .mph 模型檔案分析
 
-**適用時機**：使用者要求「分析 COMSOL 模型」、「說明 .mph 檔案」、「COMSOL 模型結構」，或想了解模型中的物理/幾何/材料/研究設定。
+**用途**：Analyze COMSOL Multiphysics .mph model files by extracting and parsing their internal XML/JSON structure. Produces a detailed Traditional Chinese markdown report covering model metadata, parameters, physics interfaces, geometry, materials, studies, and mesh. Use when asked to "分析 COMSOL 模型", "說明 .mph 檔案", "COMSOL 模型結構", "comsol model analysis", or to examine a .mph file.
 
-**前置需求**：
-- PowerShell 5.1（Windows 內建）
-- **不需安裝 COMSOL**——`.mph` 其實是 ZIP 壓縮檔，可直接解壓解析
-
-**運作流程**：
-1. 將 `.mph` 複製並改名成 `.zip`，用 `Expand-Archive` 解壓
-2. 依序解析內部 XML/JSON 檔（`modelinfo.xml`、`dmodel.xml`、`smodel.json` 等）
-3. 萃取：全域參數、物理場（線圈定義、材料模型、邊界條件、多物理耦合）、幾何序列、材料性質、研究類型（CCC/頻率/暫態/穩態）、網格設定、結果繪圖
-4. 產出涵蓋 14 大節的詳細 Markdown 報告
-5. 清理暫存檔
-
-**產出**：`<model_name>-模型詳細說明.md`
-
-**注意**：`dmodel.xml` 可達 5–60 MB 需分段讀取；`.mphbin` 為二進位檔無法直接讀取。
-
-**[回到目錄](#目錄)**
+**摘要**：
+- - User says 分析 COMSOL 模型 / 說明 .mph 檔案 / COMSOL 模型結構 / comsol model analysis, or hands you a `.mph` file to document.
+- - Also use when the user asks about the physics, geometry, materials, or studies defined in a COMSOL model.
+- - **No COMSOL installation required** — the `.mph` file is a standard ZIP archive.
+- - **無額外 Python 套件（無依賴）** — 只需標準程式庫 `zipfile` / `xml.etree` / `json`，macOS 與 Windows 內建 Python 3 皆可用。
+- - Windows: PowerShell 5.1（內建）。macOS: 任一 Python 3 + `unzip`（內建）。
+- - Working temp directory: 任一支暫存目錄（如 `/var/folders/.../tmp` 或 `C:\Users\...\AppData\Local\Temp\opencode`）
 
 ---
 
-## 2. dwg-to-dxf — DWG 轉 DXF 與詳細解析
+## 2. comsol-linsolver-benchmark
 
-**用途**：將 AutoCAD `.dwg` 檔轉成 `.dxf`（使用 ODA File Converter），再用 Python `ezdxf` 進行完整的幾何與詮釋資料解析，產出繁體中文分析報告。
+**名稱**：comsol-linsolver-benchmark — COMSOL 線性求解器 A/B 基準測試（MUMPS vs cuDSS）
 
-**適用時機**：使用者要求「轉換 DWG」、「DWG 轉 DXF」、「分析 DWG 檔案」、「DWG 幾何分析」，或想查看 AutoCAD 圖面的圖層/尺寸/幾何/圖塊內容。
+**用途**：A/B benchmark a COMSOL Multiphysics model's linear solver (MUMPS CPU vs cuDSS GPU vs PARDISO) by directly patching the solver node inside the .mph package's embedded dmodel.xml, then running comsolbatch with a fixed time budget while sampling nvidia-smi. Covers the root cause of "cuDSS never actually used" (solver set on a DISABLED node vs the ACTIVE node referenced by the Fully Coupled solver), the verified patch procedure, the 20-minute benchmark protocol, GPU-utilization monitoring, and the measured FCFC Coil results (cuDSS = 2.5x simulation-time progress). Use when asked to "比較 MUMPS 與 cuDSS", "cuDSS GPU 求解", "GPU 求解器基準測試", "改 mph 內嵌求解器", "linsolver patch", or to benchmark/verify which linear solver a COMSOL model really uses.
 
-**前置需求**：
-- ODA File Converter（`C:\Program Files\ODA\ODAFileConverter 27.1.0\`）
-- Python `ezdxf`（`py -3 -m pip install ezdxf`）
-- PowerShell 5.1
-
-**運作流程**：
-1. 確認/安裝 ODA File Converter
-2. 準備輸入/輸出目錄並複製 DWG
-3. 以命令列轉檔（`ODAFileConverter.exe <in> <out> ACAD2018 DXF 0 1`）
-4. 撰寫 ezdxf 分析腳本，分析：
-   - 檔案基本資訊（版本、單位、範圍）
-   - 圖層結構（顏色、線型、可見性、實體數）
-   - 實體統計（LWPOLYLINE、LINE、CIRCLE、HATCH、DIMENSION、TEXT…）
-   - 尺寸標註、幾何結構、填充圖案、文字物件、圖塊、版面配置
-5. 產出詳細 Markdown 報告並清理暫存
-
-**產出**：`<drawing_name>-圖面詳細說明.md`
-
-**注意**：ezdxf 無法直接讀 DWG，須先轉 DXF；ODA 需以目錄為單位處理。
-
-**[回到目錄](#目錄)**
+**摘要**：
+- **COMSOL solver 設定藏在 `.mph` 內建的 `dmodel.xml`，而且設定在「停用的節點」= 沒有效果。**
+- - `.mph` 是 ZIP，內含 `dmodel.xml`（通常 5–8 MB）、`smodel.json`、`mesh1.mphbin`、
+- 一堆 `solutionblock*.mphbin`（可能幾十 MB 到幾百 MB）等。
+- - 求解樹結構範例（`sol1` / Time solver `t1`）：
+- - `t1`（Time solver）底下有許多 Feature：`dDef`、`d1`..`d4`（Direct）、
+- `iDef`/`i1`..（Iterative）、`se1`（Segregated）、`ss1`..（SegregatedStep）、
 
 ---
 
-## 3. md-to-pdf — 繁中 Markdown → A4 PDF
+## 3. comsol-mcp
 
-**用途**：將繁體中文 Markdown 說明檔渲染成排版精美的 A4 多頁 PDF。使用 Pillow + 微軟正黑體**離線產生**，不需網路或 wkhtmltopdf/pandoc/LaTeX。
+**名稱**：comsol-mcp — 透過 opencode 操作 COMSOL 6.4
 
-**適用時機**：使用者要求「寫一個 Markdown 說明檔案以及 PDF 格式說明檔案」、「把 md 轉成 PDF」或產出成對的 `.md`/`.pdf`。
+**用途**：Drive COMSOL Multiphysics 6.4 on this machine through the opencode COMSOL MCP server (wjc9011/COMSOL_Multiphysics_MCP, local fork yd7148). Covers the required launcher startup, the verified tool sequence (model -> component -> geometry -> physics -> mesh -> study -> solve -> evaluate), and the client-API gotchas discovered in testing (physics needs a geometry tag, full study step names, HeatTransfer ASHRAE limitation). Use when asked to "用 COMSOL 建模", "跑 COMSOL 仿真", "使用 comsol MCP", or to operate COMSOL via opencode MCP tools.
 
-**前置需求**：
-- Python venv 含 Pillow
-- 中文字體：`C:\Windows\Fonts\msjh.ttc`（正黑體）/ `msjhbd.ttc`（粗體）
-- 英數字體：`C:\Windows\Fonts\consola.ttf`
-
-**支援語法**：`#`/`##`/`###` 標題、段落、清單、引言、圍欄代碼區塊、表格（自動欄寬＋斑馬紋）、分隔線、頁尾頁碼。
-
-**運作流程**：
-1. 先寫好 Markdown 原稿
-2. 複製 `make_md_pdf.py` 渲染腳本並改開頭 `SRC`/`OUT` 路徑
-3. 執行並以 RapidOCR 回讀首頁 PNG 驗證中文未亂碼
-
-**產出**：`<主題>.md` + `<主題>.pdf`（A4 多頁）
-
-**注意**：本 skill 無法加入巢狀清單或行內粗斜體語法；表格過長需拆分。
-
-**[回到目錄](#目錄)**
+**摘要**：
+- **Never start the server as `python -m src.server`.** JPype's in-process JVM
+- startup hangs indefinitely when anyio/FastMCP worker threads are already
+- running when `jpype.startJVM` is called (observed: >10 min, CPU ~0).
+- `launcher.py` (repo root) pre-starts the COMSOL client on the main thread
+- before `mcp.run()`, making startup ~instant. Configured automatically in
+- `opencode.jsonc` (command `-m launcher`, env `COMSOL_MCP_CORES=4`). If the
 
 ---
 
-## 4. v2t-report-summary — 重點彙總 ver2
+## 4. dwg-to-dxf
 
-**用途**：將逐分鐘的詳細影片分析報告（`-3-report.md`：時間｜語音重點｜畫面OCR重點｜GitHub 對照）濃縮成乾淨、校正過的繁體中文重點摘要（`-3-report-ver2.md`）。
+**名稱**：dwg-to-dxf — DWG 轉 DXF 與詳細解析
 
-**適用時機**：使用者提供 `-3-report.md`（或課程/影片名稱如 `Class17-2026_08_12_晚上`）並要求「彙總分析」、「重點彙總」、「產出 ver2 摘要」。
+**用途**：Convert AutoCAD DWG files to DXF format using ODA File Converter, then perform detailed geometric and metadata analysis using Python ezdxf library. Produces a comprehensive Traditional Chinese markdown report covering layers, entities, dimensions, geometry, blocks, hatches, and text content. Use when asked to "轉換 DWG", "DWG 轉 DXF", "分析 DWG 檔案", "dwg to dxf conversion", "DWG 幾何分析", or to examine a .dwg/.dxf engineering drawing file.
 
-**運作流程**：
-1. 找到並驗證來源檔（確認是真文字，非 docx 偽裝的 .md）
-2. **完整讀取後才撰寫**——僅依報告資料衍生，不臆造
-3. 讀取時靜默校正常見 ASR 誤聽（雷神NN→lessonNN、Open call→OpenCode、Power share→PowerShell、Greema→Gemma、Ghfome→Chrome、DHUB→GitHub 等）
-4. 套用 2x 影片時間軸慣例（原始課程時間 = ×2）
-5. 產出結構化摘要（詮釋資料表 + 依時間排序的編號章節 + 附註）
-
-**產出**：`<BASE>-3-report-ver2.md`（約 40–60 行，UTF-8 無 BOM）
-
-**[回到目錄](#目錄)**
+**摘要**：
+- - User says 轉換 DWG / DWG 轉 DXF / 分析 DWG 檔案 / dwg to dxf conversion / DWG 幾何分析, or hands you a `.dwg` file to analyze.
+- - Also use when the user asks about layers, dimensions, geometry, blocks, or any content in an AutoCAD drawing file.
+- - **ODA File Converter** — installed at `C:\Program Files\ODA\ODAFileConverter 27.1.0\ODAFileConverter.exe`
+- - If not installed, download from: https://www.opendesign.com/guestfiles/oda_file_converter
+- - Windows MSI: `ODAFileConverter_QT6_vc16_amd64dll_27.1.msi`
+- - Install silently: `msiexec /i "<path>.msi" /qn`
 
 ---
 
-## 5. video-2x-speed — 影片加速轉檔
+## 5. github-skill-sync
 
-**用途**：以 ffmpeg 將錄影影片轉成 **200% 播放速度**（或任意 0.5x–100x），維持相同解析度與 fps，並用 Intel GPU（`h264_qsv`）編碼、`atempo` 保留音調。也可結合裁切黑色區塊與加速一次完成。
+**名稱**：github-skill-sync — 本機 ↔ GitHub Skills 同步
 
-**適用時機**：使用者要求「加速影片」、「轉成 2 倍速」、「200% 播放速度」、「裁切黑邊」，或要產出已下載 .mp4 的 2x/裁切版本。
+**用途**：同步本機 OpenCode skills（~/.config/opencode/skills/）與 GitHub 上的 OpenCode_skill 收藏庫（yd7148/OpenCode_skill），支援下載（GitHub→本機）與上傳（本機→GitHub）兩個方向。處理排除規則（.venv、__pycache__）、空目錄、commit 與 SSH push，並同步 GitHub 根目錄的 README.md / SKILLS.md 到地端。Use when asked to "同步 skill", "更新 skill 收藏庫", "sync skills", "上傳本機 skill 到 GitHub", "從 GitHub 拉下 skills", or to keep local skills in sync with the OpenCode_skill repo.
 
-**前置需求**：
-- ffmpeg 7.1（`C:\Users\N000149839\opencode-tools\ffmpeg.exe`）
-- Intel GPU + `h264_qsv` encoder
-- yt-dlp（pip 安裝）
-
-**關鍵經驗（重要陷阱）**：
-- `-ss`/`-t` 必須放在 `-i` **之前**（輸入端裁切），否則會產出非真正加速的檔案
-- 30fps 來源＋`setpts=PTS/2` 會導致 QSV「unsupported frame rate」，需加 `fps=30`
-- 裁黑邊不可只信 `cropdetect`，需用 PIL 逐欄量測亮度（黑值門檻 32 非 16）
-- 批次模式下段檔案被中斷會無 moov atom，續跑需先 probe 再跳過
-
-**產出**：`<video名>-2x.mp4`（來源旁，唯一檔名）
-
-**[回到目錄](#目錄)**
+**摘要**：
+- | 項目 | 路徑 |
+- |------|------|
+- | 本機 skills 目錄 | `D:\80-Opnecode\.opencode\skills\`（Windows；本次同步的集合） |
+- | GitHub repo 本機 clone | `C:\Users\N000149839\OpenCode_skill` |
+- | GitHub 遠端 | `https://github.com/yd7148/OpenCode_skill.git`（HTTPS；`gh auth` token / credential manager，**非 SSH**） |
+- | 共用說明文件 | `README.md`、`SKILLS.md`（repo 根目錄） |
 
 ---
 
-## 6. video2text — 影片分析管線
+## 6. hcl-notes-forward
 
-**用途**：將錄製的會議/線上課程影片分析成**繁體中文 Markdown 報告 + 關鍵幀 PDF**。每 10 秒擷取畫面跑 RapidOCR，以 faster-whisper large-v3-turbo（CPU int8，建議）或 OpenVINO whisper-large-v3（Intel GPU，舊版）轉錄語音，OpenCC 轉繁體，再將 OCR 幻燈片文字與語音交叉比對成時間軸表格與重點分析。
+**名稱**：hcl-notes-forward — HCL Notes 公布函直接轉寄自動化
 
-**適用時機**：使用者要求「分析影片」、「影片轉文字」、「畫面與語音重點摘要」、「OCR + whisper 比對」。目標是**本機離線推論**（不依賴雲端 API）。
+**用途**：自動化 HCL Notes（本機 Windows client）的「公布函系統通知」未讀郵件批次處理：將信箱依寄件者($BySender)視圖中「公布函系統通知」群組的未讀信件，逐封以「直接轉寄」寄給指定群組（如「工三碳化矽專案組-03-全組(21)」），寄完刪除原信。全程用 GDI 全螢幕截圖 + OCR（RapidOCR）+ SetCursorPos/mouse_event 螢幕絕對座標點擊。當你被要求「轉寄公布函」「批次處理 Notes 未讀通知」「直接轉寄給群組」、或收到一份 HCL Notes 公布函批次作業時使用。Use when asked to 轉發 Notes 公布函、處理未讀通知、direct-forward Notes mail to a group.
 
-**完整管線**：
-1. 影片取得（yt-dlp / HLS fallback）
-2. 音訊＋畫面擷取（處理 2x 影片的還速與時間軸對齊）
-3. OCR 全部畫面（CPU 並行，續跑安全）
-4. Whisper 轉錄（faster-whisper，checkpoint 續跑）
-5. 幻燈片分群＋語音對齊
-6. 產出 Markdown 報告（分析方法/概述/時間軸摘要/知識點/外部比對/幻覺偵測/驗證/結論）
-7. 產出關鍵幀 PDF
-
-**注意**：
-- 報告檔名一律純 `.md`（不可 `.md.docx`），需驗證 magic bytes 非 `PK\x03\x04`
-- 需記錄所用模型與幻覺率（tiny 高達 ~88%，僅供參考）
-- `BatchedInferencePipeline` 會 hang，禁用以外的 `model.transcribe()` 只適用
-
-**產出**：
-- `<video名>-分析影片-畫面與語音重點摘要.md`
-- `<video名>-分析影片-畫面與語音重點摘要.pdf`
-- `<video名>-畫面重點.pdf`（關鍵幀）
-
-**[回到目錄](#目錄)**
+**摘要**：
+- - 使用者要求把 Notes 信箱中的「公布函系統通知」未讀信，用「直接轉寄」寄給某個通訊錄群組。
+- - 要批次處理多封未讀公布函，並在寄出後刪除原信。
+- - 使用者明確表示這類公布函「直接轉寄」**不留已傳送副本**，故無法用已傳送驗證，只能靠收件群組端或使用者確認。
+- | 項目 | 值 |
+- |------|-----|
+- | Notes client | HCL Notes 9-11（本案例 11.0.1FP5），`C:\lotus\Notes\nlnotes.exe` |
 
 ---
 
-## 7. yt-batch-download — YouTube 批次下載
+## 7. md-to-pdf
 
-**用途**：批次下載多支 YouTube 影片，**1080p 最高畫質**，支援自訂檔名、cookies 匯入、SSL 修復、JS runtime 設定。
+**名稱**：md-to-pdf — 繁中 Markdown → A4 PDF（離線 Pillow 渲染）
 
-**適用時機**：使用者要求「下載 YouTube 影片」、「批次下載 YT」、「下載課程影片」，或要從 URL 列表批次下載。
+**用途**：將繁體中文 Markdown 說明檔渲染成排版精美的 A4 多頁 PDF（標題、表格、代碼區塊、引言、頁碼），使用 Pillow + 微軟正黑體離線產生，不需網路。Use when asked to "寫一個MARKDOWN說明檔案以及PDF格式說明檔案", "把 md 轉成 PDF", "產生中文 PDF 說明檔", or to create paired .md/.pdf deliverables.
 
-**前置需求**：
-- Python 3.13+（`py` launcher）
-- yt-dlp（pip 安裝）
-- ffmpeg + ffprobe
-- deno（JS runtime，解決 n challenge）
-- browser_cookie3（從 Chrome 匯出 cookies 繞 403）
-
-**關鍵參數（缺一不可）**：`--no-check-certificates`、`--cookies`、格式選擇 `bestvideo[height<=1080]...`、`--merge-output-format mp4`、`--ffmpeg-location`、`--js-runtimes deno`、`--remote-components ejs:github`。
-
-**重要經驗**：
-- deno **必須在 PATH 上**，否則 `JS runtimes: none`、n challenge 失敗只剩 storyboard
-- 成功訊號：log 出現 `[jsc:deno] Solving JS challenges using deno`
-- cookies 有詐欺有效期限，過期需重新匯出
-- 支援直播重播（`youtube.com/live/ID`）與一般影片
-
-**產出**：依來源 README 標題命名的 1080p `.mp4` 檔
-
-**[回到目錄](#目錄)**
+**摘要**：
+- - User 要求「寫一個 Markdown 說明檔案，以及 PDF 格式的說明檔案」
+- - 需要把知識整理/配方/規格/報告輸出成可列印的中文 PDF
+- - 環境無法安裝 wkhtmltopdf / pandoc / LaTeX 時的純 Python 方案
+- | 工具 | 路徑 | 說明 |
+- |------|------|------|
+- | Python 3 | venv 或系統 python | 需含 Pillow |
 
 ---
 
-## 8. yt-upload — YouTube 影片上傳發布
+## 8. meeting-transcript-summary
 
-**用途**：透過 Playwright 操作 YouTube Studio，將本機影片（.mp4）上傳並**公開發布**為 YouTube 影片。支援填寫詳細的標題、說明、標籤、主題標籤，設定目標觀眾（非兒童專屬）與瀏覽權限（公開/不公開/私人），並擷取發布後的影片連結。
+**名稱**：meeting-transcript-summary — 原始時間戳會議逐字稿 → 詳盡繁中會議彙總
 
-**適用時機**：使用者要求「上傳 YouTube」、「上傳影片」、「把影片上傳公開」、「發布影片」。
+**用途**：將一場會議的「原始時間戳逐字稿」（*_timestamp.txt，語音辨識輸出）彙總成詳盡繁體中文主管會議紀錄摘要（含各主管問題、部屬答覆、目標與代辦事項），存成 <BASE>_會議彙總.md。Use when asked to "彙總會議紀錄", "會議逐字稿重點", "條列各主管問題與部屬答覆", "指示須完成目標與代辦事項", or handed a *_timestamp.txt file to summarize into a supervisor meeting-minutes deliverable.
 
-**前置需求**：
-- Playwright 瀏覽器（chrome）
-- 已登入的 YouTube/Google 帳戶 session
-- 本機 .mp4 影片檔
-
-**運作流程**：
-1. 開啟 `studio.youtube.com`（未登入需先引導登入）
-2. 點「上傳影片」→「選取檔案」→ 提供本機 .mp4
-3. 填寫標題、說明（含主題標籤）、標記、目標觀眾
-4. 設定瀏覽權限（預設公開）
-5. 點「發布」
-6. 擷取並驗證影片連結（`https://youtu.be/VIDEO_ID`）
-
-**產出**：公開可觀看的 YouTube 影片連結，含詳細的標題/說明/標籤設定
-
-**[回到目錄](#目錄)**
+**摘要**：
+- - User 給你一個 `*_timestamp.txt`（或任一語音辨識逐字稿），要求「彙總會議紀錄」
+- - 要求「詳細彙總、條列各主管問題與部屬答覆、指示須完成目標與代辦事項」
+- - 需要把長達數小時的半導體／製造業／任何專業會議逐字稿，濃縮成可讀的會議紀錄
+- 1. **完整讀完才動筆**：`read` 用 offset 分頁讀完整個檔案；不要只讀開頭。
+- 2. **語音辨識會誤聽**：以專業上下文研判「更正常見誤聽詞」，**在摘要中直接改正**，
+- 不照抄雜訊。彙總開頭以引言區塊列出已更正之對照表。
 
 ---
 
-## 9. tts — 文字轉語音
+## 9. open-computer-use
 
-**用途**：使用 **Microsoft Edge 的雲端神經語音**（`edge-tts`）將文字轉成高品質語音檔（.mp3）。不需本機語音模型，支援繁體中文（正體）、簡體中文、粵語與多國語言與多種聲音，可調整語速/音量/音調，並可輸出字幕。
+**名稱**：Open Computer Use
 
-**適用時機**：使用者要求「文字轉語音」、「TTS」、「產出語音檔」、「文字變成聲音」、「生成旁白 / voiceover 音檔」。
+**用途**：Platform-neutral guidance for using Open Computer Use, the open-source Computer Use MCP server and CLI for macOS, Linux, and Windows. Use when an agent needs to install, verify, troubleshoot, configure, or operate Open Computer Use through its native CLI, stdio MCP server, or direct Computer Use tool calls.
 
-**前置需求**：
-- Python 3 `edge-tts`（`py -3 -m pip install edge-tts`）
-- 網路連線（呼叫微軟雲端 `speech.platform.bing.com`）
-- **本機需帶 proxy**：`--proxy $env:HTTPS_PROXY`
-
-**繁體中文聲音**：`zh-TW-HsiaoYuNeural`（女）、`zh-TW-HsiaoChenNeural`（女）、`zh-TW-YunJheNeural`（男）；另有簡中 `zh-CN-*`、粵語 `zh-HK-*`、英語 `en-US-*` 等。
-
-**基本用法**：
-```
-py -m edge_tts --voice "zh-TW-HsiaoYuNeural" --text "你好。" --write-media "out.mp3" --proxy $env:HTTPS_PROXY
-```
-長文稿用 `--file "text.txt"`（UTF-8）。語速/音調負值需用 `--rate=-10%`、`--pitch=-10Hz` 等號形式。
-
-**重要陷阱**：
-- **一定要帶 `--proxy`**，否則 `socket.gaierror: getaddrinfo failed`（Fortinet proxy 環境）
-- 負值參數用 `=` 形式，否則 argparse 報 `expected one argument`
-- 需網路，離線不可用
-- 專為 HyperFrames 影片配音可改走 `media-use` skill
-
-**產出**：`<名稱>.mp3`（語音檔），選用 `<名稱>.srt`（字幕）
-
-**[回到目錄](#目錄)**
+**摘要**：
+- Open Computer Use exposes Computer Use as a local CLI and stdio MCP server. It is not Codex.app-specific; adapt the commands and MCP config to the agent runtime you are operating in.
+- The macOS runtime requires macOS 14.0 or later. Windows and Linux use their own platform runtimes and are not subject to this macOS minimum.
+- It supports the same core tool surface across macOS, Linux, and Windows:
+- `list_apps`, `get_app_state`, `click`, `perform_secondary_action`, `scroll`,
+- `drag`, `type_text`, `press_key`, and `set_value`.
+- 1. On macOS, run `sw_vers -productVersion` before invoking the CLI and require macOS 14.0 or later. On older versions, explain that the runtime cannot launch; do not recommend `doctor` or permission changes as a fix for binary incompatibility.
 
 ---
 
-## 10. taobao-order-extract — 淘寶訂單資料提取整理
+## 10. pdf-exam-extractor
 
-**用途**：從淘寶導出的 `訂單數據.xlsx` Excel 檔案提取訂單資料（商品名稱、實付金額、物流公司與單號），並依一份物流重量清單比對補上各物流單號對應的重量，依序輸出成每筆訂單的 markdown 段落，可存檔成 `.md` 檔。
+**名稱**：PDF Exam Extractor (考題PDF擷取與OCR)
 
-**適用時機**：使用者要求「整理訂單」、「訂單數據提取」、「淘寶訂單整理」、「訂單資料匯總」，或需把 `訂單數據.xlsx` 解析成依序編號的訂單卡片。
+**用途**：Use when the user asks to extract individual questions from exam PDF files (考題PDF), perform OCR on each question, crop questions into separate images, or process 國營事業招考 (state-owned enterprise exam) papers. Covers PDF-to-image conversion, text position extraction with pdfplumber, question boundary detection, image cropping, and EasyOCR recognition.
 
-**前置需求**：
-- Python 3 + `openpyxl`（安裝於專用 venv）
-
-**輸入**：
-1. **訂單 Excel**：`訂單數據.xlsx`（sheet 名稱通常為「訂單數據」，含表頭）
-2. **物流重量清單**（選用）：純文字/表格，格式「物流單號 + 目的地（台灣）+ 重量」，如 `79027852606958 台灣 1.260`
-
-**訂單 Excel 欄位**（每列依序）：
-`訂單號, 訂單提交時間, 訂單狀態, 店鋪名稱, 商品名稱, 商品連結, 型號款式, 商品數量, 商品金額, 實付金額, 運費, 物流公司, 物流單號`
-
-**重要處理規則**：
-- **分組**：同筆訂單可能有多列。若「訂單號」欄為空 `None`，該列屬於上一筆有訂單號的訂單；每個「訂單號」視為一筆獨立訂單。
-- **商品名稱**：取該訂單第一列（訂單號那列）的「商品名稱」。
-- **實付金額**：取該訂單第一列的「實付金額」（訂單號所在列），非子列。
-- **物流**：使用「物流公司」與「物流單號」欄位。
-- **交易關閉**：若訂單狀態為「交易關閉」，則無物流公司與單號，標記為 `(交易關閉)`。
-
-**重量比對**：若提供物流重量清單，建立 `{物流單號: 重量}` 對照，在每個訂單的物流單號後追加 `物流單號 台灣 重量`；查無資料不追加；重量清單中無對應訂單的單號在輸出時提示使用者。
-
-**產出**：依序編號（`#01`、`#02`…）的 markdown 訂單卡片，存檔如 `訂單數據整理.md`。
-
-**注意**：若結果筆數與使用者預期不符，主動說明實際筆數；商品名稱與金額保留簡體原文，標題與重量「台灣」用繁體，金額保留 `￥` 符號。
-
-**[回到目錄](#目錄)**
+**摘要**：
+- ```python
+- import pdfplumber
+- def extract_text_with_positions(pdf_path):
+- """Extract text and bounding boxes from PDF"""
+- all_texts = []
+- with pdfplumber.open(pdf_path) as pdf:
 
 ---
 
-## 11. github-skill-sync — 本機 ↔ GitHub Skills 同步
+## 11. pdf-reader
 
-**用途**：同步本機 OpenCode skills 目錄與 GitHub 上的 `yd7148/OpenCode_skill` 收藏庫，支援下載（GitHub→本機）與上傳（本機→GitHub）雙向，並維持兩邊說明文件一致。
+**名稱**：pdf-reader — 讀取 PDF 內容並輸出 Markdown 摘要
 
-**適用時機**：使用者要求「同步 skill」、「更新 skill 收藏庫」、「sync skills」、「上傳本機 skill 到 GitHub」、「從 GitHub 拉下 skills」。
+**用途**：讀取 PDF 檔案的內容並輸出成 Markdown 摘要報告。文字型 PDF 用 PyMuPDF 直接抽取（含中文）；掃描/圖片型 PDF 自動渲染成 PNG 並以 RapidOCR 辨識；輸出以 opencc 轉為繁體中文。Use when asked to "讀取 PDF", "解析 PDF", "PDF 內容是什麼", "把 PDF 轉成文字", "提取 PDF 重點", "read this PDF", "extract PDF content", or handed a .pdf file to summarize or quote.
 
-**前置需求**：
-- SSH key 已加至 GitHub，repo 以 SSH remote 同步到 `~/OpenCode_skill`
-- 本機 skills 目錄 `~/.config/opencode/skills/`
-
-**運作流程**（雙向）：
-1. 先 `git pull`/`git fetch` 確保 clone 最新。
-2. 用 `rsync`（排除 `.venv/`、`__pycache__/`）把 repo↔本機各 skill 同步。
-3. 同步根目錄 `README.md` / `SKILLS.md` 保持一致。
-4. 上傳方向：`git add -A` → 檢視 `git status` → commit（`yd7148@hotmail.com.tw`）→ `git push origin main`。
-5. 空目錄不追蹤、跳過並提醒；`.venv` 永不提交。
-
-**產出**：本機與 GitHub 兩處 skills 與說明文件一致。
-
-**注意**：push 走 SSH（不需 token）；新增 skill 時記得同步更新 `README.md` 目錄表與 `SKILLS.md` 章節。
-
-**[回到目錄](#目錄)**
+**摘要**：
+- - User 要求「讀取 / 解析 / 看 PDF 內容」並提供 `.pdf` 路徑
+- - 需要引用 PDF 內文、整理重點、或作為後續分析（熱量、翻譯、彙整）的輸入
+- - 使用者提供掃描版 PDF（無文字層）也要能讀
+- | 工具 | 位置 | 用途 |
+- |------|------|------|
+- | 分析 venv | `D:\80-Opnecode\workspace\_maidate_work\venv\Scripts\python.exe` | PyMuPDF、pypdf、RapidOCR、opencc、Pillow |
 
 ---
 
-## 12. webwright — 瀏覽器 agent
+## 12. sd-webui-vae-fix
 
-**用途**：Microsoft 開源的 SWE-style 瀏覽器 agent 框架。agent 透過 bash 逐命令執行 Python/Playwright script 操作瀏覽器（code-as-action），留下可重跑的 `final_script.py` 與截圖證據。
+**名稱**：sd-webui-vae-fix — A1111 檢查點／VAE 切換失敗修復
 
-**適用時機**：自動化網頁任務（搜尋、篩選、填表、多步驟流程、資料抽取），且使用者想要可重用 script + 截圖證據，而非一次性答案。
+**用途**：修復 AUTOMATIC1111 Stable Diffusion WebUI（A1111 / sd.webui）「無法切換」檢查點或 VAE 的錯誤（sd_model_checkpoint / sd_vae 選擇失敗）。覆蓋兩種根因：(1) VAE 檔是 diffusers 格式；(2) 完整檢查點（6~7GB，例如 sd_xl_base_1.0_0.9vae.safetensors）誤放 models\VAE 被當成 VAE 選取，log 出現 Missing/Unexpected key(s) 或 AutoencoderKLInferenceWrapper。診斷 VAE 檔格式、從完整檢查點抽取正確 VAE 並移動檢查點、用 run.bat 正確重啟（CWD/環境變數陷阱）、以 /sdapi 或免 --api 的 in-process 方式驗證。Use when asked to 修復 無法切換 / checkpoint 切換失敗 / VAE 切換失敗 / VAE format / Missing key(s) / Unexpected key(s) / AutoencoderKL / sd_vae / sd_model_checkpoint / AutoencoderKLInferenceWrapper。
 
-**前置需求**：
-- Python 3.12 venv：`~/web-tools/webwright-python/.venv`（含 playwright、httpx、pydantic）
-- Playwright Firefox：`~/Library/Caches/ms-playwright/firefox-1538`
-- 無需 API key（借用 host model）
-
-**運作流程**（參考 `reference/workflow.md`）：
-1. 建立 `plan.md` 列出關鍵檢查點（CP）。
-2. 用 scratch Playwright script 探索穩定的 selector。
-3. 寫 `final_script.py`（含步驟 log 與截圖）。
-4. 執行並自我驗證（讀 PNG 對照 plan.md），逐項打勾。
-5. 全部通過才回報最終資料。
-
-**重要**：進度 log 為 `final_runs/run_<id>/final_script_log.txt`；瀏覽器用 Firefox（某些站用 Chromium 會 `ERR_HTTP2_PROTOCOL_ERROR`）。
-
-## 13. web-tools — 本機網頁工具環境
-
-**用途**：紀錄本機已安裝的網頁工具環境路徑與用法，供 agent 在需要爬蟲或瀏覽器自動化時引用對應 venv。
-
-**內容**：
-- **Crawl4AI**：`~/web-tools/crawl4ai/.venv/bin/python`（Python 3.12），抓網頁轉乾淨 markdown。用 `AsyncWebCrawler`/`SyncWebCrawler`。
-- **Webwright**：`~/web-tools/Webwright`，python env `~/web-tools/webwright-python/.venv`。
-- Playwright 瀏覽器路徑須設 `PLAYWRIGHT_BROWSERS_PATH=/Users/4pins/Library/Caches/ms-playwright`。
-
-**[回到目錄](#目錄)**
+**摘要**：
+- - 網頁頂部出現 toast「無法切換 <名稱>」或英文同義訊息。
+- - VAE 下拉選了某 VAE，或 `sd_model_checkpoint` 切不過去。
+- - **VAE 下拉出現一顆「看起來像檢查點」的項目**（例如 `sd_xl_base_1.0_0.9vae.safetensors`，檔名像 VAE 但其實 6~7GB）。
+- - WebUI log / console 出現類似：
+- changing setting sd_vae to xxx.safetensors: RuntimeError
+- Error(s) in loading state_dict for AutoencoderKL:
 
 ---
 
-## 14. pdf-exam-extractor — 考題 PDF 擷取與 OCR
+## 13. taipower-exam-solver
 
-**用途**：從考題 PDF（如國營事業招考）中逐一擷取每道題目，把每題裁剪成獨立圖片、執行 OCR，並輸出每題的 Markdown 檔。
+**名稱**：Taipower Exam Solver
 
-**適用時機**：使用者要求「擷取考題 PDF」、「逐題 OCR」、「把每題裁剪成圖片」、處理國營事業招考考卷（台電/中油/台水/台糖）。
+**用途**：Use when the user asks to process 國營事業招考 (state-owned enterprise exam) PDF files from 台電/中油/台水/台糖, extract questions with pymupdf, solve exam problems (電路學, 電子學, 基本電學, etc.), search for official answer keys from taipower.com.tw, or generate detailed step-by-step solutions for exam papers. Covers PDF text/image extraction, web scraping of answer PDFs, and circuit/electronics problem solving.
 
-**前置需求**（Windows）：
-- Python：pymupdf、pdfplumber、easyocr、opencv-python、Pillow
-- GPU 加速：`torch`（CUDA）
-- 中文/非 ASCII 路徑會破壞 `cv2.imread` → 一律用 `np.fromfile` + `cv2.imdecode` 或 PIL
-
-**運作流程**：
-1. 用 pdfplumber 擷取文字座標（`x_tolerance`/`y_tolerance` 因版面調整）
-2. 以正則比對題號（`1.`～`50.`）定位每題起點，過濾頁碼、選項標籤等雜訊
-3. 用 PyMuPDF 將每頁轉成 2x 縮放 PNG
-4. 依題號排序計算裁剪邊界（含上方 padding），換頁時避免題號重複覆寫
-5. 用 EasyOCR 逐題辨識並輸出 Markdown（以 UTF-8 包裝 stdout 避免中文亂碼）
-
-**產出**：`提取結果/` 下 `q01.md ~ q50.md`、`q01.png ~ q50.png`、`summary.md` 題目索引表
-
-**注意**：pdfplumber 為 72 DPI 座標，裁剪 2x 圖時 y 座標需乘 2；電路圖需保留圖檔，OCR 無法還原圖形內容。
-
-**[回到目錄](#目錄)**
+**摘要**：
+- test-pdf/
+- {year}/
+- {subject}/
+- 提取結果_v4/          # OCR output directory
+- q01.md              # Per-question OCR text
+- q01.png             # Per-question cropped image
 
 ---
 
-## 15. taipower-exam-solver — 國營事業考題解題
+## 14. takeout-exif-merge
 
-**用途**：端對端處理國營事業招考（台電/中油/台水/台糖）考題 PDF：用 pymupdf 擷取題目、從台電官網搜尋官方解答、並產出逐步詳解（電路學、電子學、基本電學等）。
+**名稱**：Google Photos Takeout EXIF Merge
 
-**適用時機**：使用者要求「處理台電考題 PDF」、「解電路學/電子學題目」、「查官方答案」、「產出完整解答文件」。
+**用途**：Use when the user asks to merge Google Photos Takeout supplemental-metadata.json sidecar files into the same-named image/video files (寫入JSON EXIF到同名影片圖片), process a Takeout Google 相簿 folder, or generate EXIF合併成果報告 style reports. Covers JSON<->media filename pairing (including (N) counter files), content-type vs extension mismatch handling, parallel exiftool -stay_open in-place writes, mtime/EXIF verification, and Markdown summary reports.
 
-**前置需求**：
-- Python `pymupdf`（fitz）
-- 網路（存取台電官方解答 PDF）
-
-**運作流程**：
-1. 以 pymupdf 渲染 PDF 頁面為圖片並擷取文字（`Matrix(3,3)` 提高清晰度）
-2. 到台電官網 `https://www.taipower.com.tw/2289/2544/2554/2556/simpleList` 搜尋官方試題/解答 PDF
-3. 讀取解答 PDF（格式：每題以 `[X]` 開頭，X 為 A/B/C/D）
-4. 以領域知識逐步解題；電路圖題目先從元件標籤重建電路，再搭配渲染圖片
-5. 輸出完整解答文件
-
-**產出**：`提取結果_v4/完整解答.md`（含題目、選項、答案與詳解）
-
-**注意**：pymupdf 無法讀加密 PDF；電路圖為向量圖形，文字擷取會遺漏接線拓撲，需以渲染圖為參考；中文＋數學符號的 OCR 品質不穩，建議與網路來源交叉比對。
-
-**[回到目錄](#目錄)**
+**摘要**：
+- - **JSON naming**: `foo.jpg.supplemental-metadata.json` ↔ media `foo.jpg`; `foo.jpg.supplemental-metadata(1).json` ↔ `foo(1).jpg` (also form B: `foo(1).jpg.supplemental-metadata.json`).
+- - **JSON keys**: `photoTakenTime`/`creationTime` (`timestamp` = UTC epoch string), `geoData{latitude,longitude,altitude}`, `title`, `description`, `people[].name`, `favorited`.
+- - **Content ≠ extension** (Google re-encodes but keeps original names): `.heic/.png/.arw/.dng` files whose content is real **JPEG**, and `.mts/.avi` files whose content is real **MOV**. ExifTool REFUSES writes when extension ≠ content. Detect magic bytes (`FF D8 FF`=jpeg, `ftyp` brand) and write via a temp copy with the correct extension, then `os.replace` back.
+- - **Structurally damaged files** (Truncated SubIFD / Bad SubIFD format / Truncated mdat / BMP): exiftool refuses to rewrite (it protects the file). Fallback: set file mtime via `os.utime` so at least the timestamp is right.
+- - **Environment gotchas**: PowerShell console mangles Chinese (CP950) — set `PYTHONIOENCODING=utf-8` / `sys.stdout.reconfigure(encoding='utf-8')`; `Set-Content` writes UTF-8 BOM (strip it when reading back retry lists).
+- - ~1 file/sec/worker throughput; 8 workers ≈ 55 min for ~315k files (plus ~18 min JSON tag-build). Use `-stay_open True -@ -` for writes; sync per-file with the stdout status line.
 
 ---
 
-## 16. takeout-exif-merge — Google 相簿 EXIF 合併
+## 15. taobao-cost-fill
 
-**用途**：將 Google 相簿 Takeout 的 `*.jpg.supplemental-metadata.json`（含 `(N)` 計數變體）側車 JSON 的 EXIF 資訊就地（in-place）寫回對應的圖片/影片檔，使用 ExifTool。同步腳本見 `scripts/merge_exif.py`。
+**名稱**：taobao-cost-fill — 淘寶費用計算明細填寫
 
-**適用時機**：使用者要求「把 Takeout JSON EXIF 寫入同名影片圖片」、「處理 Google 相簿 Takeout 資料夾」、「產出 EXIF 合併成果報告」。
+**用途**：將「淘寶費用計算明細」Excel（*-taobao-淘寶-R0.xlsx）依訂單卡片資料依序填入商品名稱（項目）、實付金額（單價RMB）、重量並另存成 *-R1.xlsx。Use when asked to "填寫費用明細", "費用計算明細填寫", "填入訂單資料", "填 R0 存 R1", "淘寶費用明細", "將訂單卡片填入 Excel", or to fill the 淘寶費用計算明細 template with order cards.
 
-**前置需求**：
-- Python 3 + ExifTool（winget `OliverBetz.ExifTool`）
-- PowerShell 需設 `PYTHONIOENCODING=utf-8`，避免 CP950 中文亂碼；`Set-Content` 會寫 UTF-8 BOM，回讀時需去除
-
-**關鍵要點**：
-- 檔名配對：`foo.jpg.supplemental-metadata.json` ↔ `foo.jpg`；`(1)` 計數變體亦有兩種命名形式
-- JSON 鍵：`photoTakenTime`/`creationTime`、`geoData`、`title`、`description`、`people[]`、`favorited`
-- 內容 ≠ 副檔名：`.heic/.png/.arw/.dng` 內實為 JPEG、`.mts/.avi` 內實為 MOV 時，ExifTool 拒絕寫入 → 先偵測 magic bytes，用正確副檔名的暫存複本寫入後再 `os.replace`
-- 結構損壞檔（Truncated SubIFD / Bad SubIFD / Truncated mdat / BMP）：改以 `os.utime` 設定 mtime 保留時間戳
-- 效能：`-stay_open True -@ -` 平行寫入，8 workers 於 ~315k 檔案約 55 分鐘
-
-**運作流程**：
-1. `merge_exif.py build <資料夾> pairs.tsv` 掃描並配對 JSON↔媒體
-2. `merge_exif.py run --exe <ExifTool> --pairs pairs.tsv --workers 8` 平行寫入（progress 檔可續跑）
-3. `merge_exif.py verify` 以 mtime 驗證（mtime == photoTakenTime ±1s 為 `ok`）
-4. 取出 `fail` 清單 → `--retry-from` 重試 → 再驗證
-5. 輸出 Markdown 成果報告（配對/未配對/殘留計數、完整寫入 vs 僅 mtime、損壞類別統計）
-
-**產出**：媒體檔含正確 EXIF/時間/GPS 資訊 + `EXIF合併成果報告.md`
-
-**注意**：時間寫入 `+00:00`，mtime 即 UTC epoch 可用 `os.stat` 驗證；報告統計數字因帳戶而異，需重新計算。
-
-**[回到目錄](#目錄)**
+**摘要**：
+- 把依序編號的訂單卡片（含商品名稱、實付金額、物流、重量）填入既有的「淘寶費用計算明細」Excel 樣板（`*-taobao-淘寶-R0.xlsx`），依序寫入商品列，並另存成 `*-taobao-淘寶-R1.xlsx`。
+- - Python 3 + openpyxl，安裝於本 skill 專用 venv：
+- ```bash
+- cd <skill>/taobao-cost-fill
+- python3 -m venv .venv
+- .venv/bin/pip install openpyxl
 
 ---
 
-## 17. video-class-pipeline — 課程影片分析管線
+## 16. taobao-order-extract
 
-**用途**：批式處理一系列課程錄影（Google Meet / YouTube 直播畫面），產出可分析的成品（畫面 OCR、Whisper 語音轉錄、逐分鐘交叉比對、關鍵幀 PDF），並支援單次影片編輯（裁黑邊、2 倍速），以 RTX 5080 GPU 編碼。
+**名稱**：淘寶訂單資料提取與整理
 
-**適用時機**：使用者要求「分析課程影片」、「處理 YouTube 課程直播錄影」、「畫面 OCR + Whisper 轉錄 + 逐分鐘對照」、「關鍵幀 PDF」、「影片裁切 + 2 倍速」。
+**用途**：從淘寶導出的「訂單數據.xlsx」Excel 檔案提取訂單資料（商品名稱、實付金額、物流公司與單號），並依據一份物流重量清單比對補上各物流單號對應的重量，依序輸出成每筆訂單的 markdown 段落並可存檔成 .md 檔。Use when asked to "整理訂單", "訂單數據提取", "淘寶訂單整理", "訂單資料匯總", or to parse the 訂單數據.xlsx file into numbered order cards.
 
-**前置需求**（Windows、RTX 5080）：
-- Python venv：torch（CUDA）、whisper、easyocr、opencv-python、Pillow、yt-dlp
-- ffmpeg/ffprobe（winget `yt-dlp.FFmpeg`）
-- NVENC 編碼器：`h264_nvenc`、`hevc_nvenc`、`av1_nvenc`
-
-**運作流程**（Workflow A 批式分析）：
-1. 編輯 `pipeline/videos.py` 填入 `{name, url, id}`
-2. `download_videos.py <idx>` 依序下載（可續跑）；`verify_downloads.py` 驗證
-3. 每支影片 `process_video.py <idx>`：每 10 秒擷幀 → EasyOCR（GPU）→ 音訊 16k → Whisper medium zh（CUDA）→ 逐分鐘 crossref → 關鍵字時間軸報告 → 關鍵幀 PDF
-4. 彙整 `build_summary.py` + `build_all_frames_pdf.py`
-
-**運作流程**（Workflow B 裁黑邊 + 2 倍速）：
-1. 以 ffprobe/OpenCV 量測亮度計算裁切邊界（不可用 `cropdetect` 或不目測）；樣本多時點取多數決
-2. **兩 pass 分開編碼再 mux**：pass 1 僅影片（crop + `setpts=PTS/2` + `fps=30` + NVENC），pass 2 僅音訊（`atempo=2.0` + AAC），再 `-c copy -shortest` 合併——單一 pass 同時含音訊會截斷 AAC 串流
-3. 用 ffprobe 確認兩串流時長皆 ≈ 來源/2，並以影格比對驗證 2x 時序
-
-**關鍵檔案**：`E:\01-Project\2026-07-B-python_ai_tvdi\`（tvdi 課程）與 `E:\01-Project\2026_08_n8n_itri\`（n8n 課程）
-
-**注意**：
-- 中文路徑破壞 `cv2.imread` → 用 `np.fromfile` + `cv2.imdecode`
-- Whisper zh 會對靜音/雜訊以常見套話幻覺 → 用 HALLU 正則過濾（`点赞|打賞|明镜与点点|Amara\.org|谢谢观看|謝謝觀看|訂閱…|字幕…`）
-- GitHub 交叉比對要「零幻覺」：只索引 repo clone 中真實存在的路徑，引用格式 `` `term` → `repo:path` ``
-- 關鍵幀 PDF 為每頁一張圖（使用者偏好），以 raw bytes 數 `/Type /Page` 驗證頁數
-- **絕不** `git add` videos/analysis 輸出（數百 GB），只提交 `pipeline/`、文件與小成品
-- 長時間 GPU 階段（OCR 再接 Whisper）依序執行，勿併行；以 `timeout 7200000` 保護 shell 呼叫
-
-**[回到目錄](#目錄)**
+**摘要**：
+- 將淘寶匯出的訂單 Excel（`訂單數據.xlsx`）整理成依序編號的 markdown 訂單卡片，每個卡片包含商品名稱、實付金額、物流公司與單號，並比對物流重量清單補上對應重量。
+- 1. **訂單 Excel**：`訂單數據.xlsx`（sheet 名稱通常為「訂單數據」，含表頭）
+- 2. **物流重量清單**（選用）：純文字/表格，格式為「物流單號 + 目的地（台灣）+ 重量」，例如 `79027852606958 台灣 1.260`
+- - **Python 3 + openpyxl**，安裝於本 skill 專用 venv：
+- ```bash
+- cd <skill>/taobao-order-extract
 
 ---
 
-## 18. taobao-cost-fill — 淘寶費用計算明細填寫
+## 17. tts
 
-**用途**：把依序編號的訂單卡片（含商品名稱、實付金額、物流、重量）依序填入既有的「淘寶費用計算明細」Excel 樣板（`*-taobao-淘寶-R0.xlsx`，目標分頁名即日期如 `2026-09-05`），並另存成 `*-R1.xlsx`。
+**名稱**：tts — 文字轉語音（edge-tts）
 
-**適用時機**：使用者要求「填寫費用明細」、「費用計算明細填寫」、「填入訂單資料」、「填 R0 存 R1」，或要將訂單卡片（markdown，#01..#NN）寫入 R0 樣板的商品列。
+**用途**：使用 Microsoft Edge 的 edge-tts 將文字轉成高品質語音（Text-to-Speech），支援繁體中文、簡體中文、粵語與多國語言與多種聲音。可將文字轉成 mp3 語音檔，並可調整速率、音量、音調，亦可輸出字幕（WordBoundary/subtitle）。Use when asked to "文字轉語音", "TTS", "產出語音檔", "文字變成聲音", "text to speech", "生成旁白", "voiceover 音檔", or to convert text into spoken audio.
 
-**前置需求**：
-- Python 3 + `openpyxl`（安裝於本 skill 專用 venv）
-
-**樣板欄位**（row4 起為商品列）：
-- B=項次、C=項目（商品名稱）、D=單價 RMB（實付金額）、H=重量
-- E=單價 NTD、G=成本者 **不填**（維持樣板原樣）；F=匯率、I/J/K=分攤/關稅/總費用為公式
-- 商品區下方有「達飛運費」行（G=『運費』）與「賴政府關稅」行、合計行（公式勿動）
-
-**填入規則**：
-- 依序把卡片 #01..#NN 對應到 row4 起的每一列，同步填 B 項次。
-- C=商品名稱、D=實付金額（RMB 數值）、H=重量；卡片有 `台灣 數字` 才填重量，無則留空。
-- 樣板可能殘留**上一期的幽靈項次**，填入後清除商品區與運費行之間的殘留項次。
-- 存檔為 `*-R1.xlsx`，**不覆蓋 R0**。
-
-**執行**：套用內附 `fill_cost_sheet.py`（`--in`/`--out`/`--sheet`/`--cards`；`--cards` 省略時由 stdin 讀取）。
-
-**產出**：`*-taobao-淘寶-R1.xlsx`（商品區已填妥之明細表）。
-
-**注意**：若樣板分頁眾多（歷史各期），務必指定 `--sheet` 或在檔名含日期以自動辨識；商品筆數須與卡片數一致，並以回讀驗證 C/D/H 與項次對應。
-
-**[回到目錄](#目錄)**
+**摘要**：
+- - 使用者要求「文字轉語音」、「TTS」、「產出語音檔」、「把這段文字變成聲音」
+- - 需要影片旁白 / voiceover 的語音音檔
+- - 需要朗讀文稿、電子報、字幕的語音版本
+- - **Python 3**（本機用 `py` launcher）：`py -3 -m pip install edge-tts`
+- - **網路連線**：edge-tts 呼叫微軟雲端服務 `speech.platform.bing.com`
+- - **需要走 Proxy**（本機環境）：呼叫時**務必**帶 `--proxy $env:HTTPS_PROXY`，否則 `getaddrinfo failed`（DNS 無法解析）
 
 ---
 
-## 19. sd-webui-vae-fix — A1111 檢查點/VAE 切換修復
+## 18. v2t-report-summary
 
-**用途**：修復 AUTOMATIC1111 Stable Diffusion WebUI（A1111 / sd.webui）中「切換檢查點（`sd_model_checkpoint`）或 VAE（`sd_vae`）失敗」的問題。核心是判別 VAE 檔是 **diffusers 格式**還是 **LDM（`first_stage_model.*`）格式**，並從本機完整檢查點抽出正確 VAE 覆寫 `models\VAE\`，最後以 `/sdapi/v1` API 驗證。
+**名稱**：v2t-report-summary — 逐分鐘報告 → 重點彙總 ver2
 
-**適用時機**：使用者要求「修復無法切換 sd_xl_base_1.0.safetensors / 0.9vae」、「檢查點切換失敗」、「VAE 切換失敗」、「VAE format / Missing key(s)/Unexpected key(s)」或 A1111 出現「無法切換 <名稱>」toast。
+**用途**：Summarize a per-minute video-analysis report (-3-report.md, OCR × Whisper × GitHub cross-reference) into a clean Traditional-Chinese executive summary saved as <BASE>-3-report-ver2.md. Corrects known ASR mis-hearings (雷神17=lesson17, Open call=OpenCode, …) and applies the 2x-video time-axis convention. Use when asked to "彙總分析", "重點彙總", "產出 ver2 摘要", "report-ver2", or to distill any ClassNN report in the playwright/video-analysis projects.
 
-**根因**：
-- A1111 的 `_load_vae_dict` 用 strict `load_state_dict`，只接受 LDM 鍵（`decoder.*` / `encoder.*` / `quant_conv` / `post_quant_conv`）。
-- 從 HuggingFace 下載的 `vae/diffusion_pytorch_model.safetensors` 是 diffusers 鍵（`down_blocks` / `mid_block` / `to_q`），載入即 `RuntimeError`。
-- 此檔放進 `models\VAE\` 會同時破壞兩種情境：`Automatic` 近旁搜尋切檢查點、以及 VAE 下拉直接選它。
-
-**前置需求**：
-- A1111 WebUI 內建 Python（含 torch + safetensors）
-- 本機有「烤入同款 VAE」的完整檢查點（例如 6.6GB 的 `sd_xl_base_1.0_0.9vae.safetensors`）
-
-**運作流程**：
-1. `scripts/check_vae_format.py` 判別 `models\VAE\` 下各檔格式。
-2. `scripts/extract_vae.py <檢查點> <輸出路徑>` 抽出 `first_stage_model.*` 存成獨立 VAE，覆寫 `models\VAE\`。
-3. 清除殘留 `python launch.py` 實例（CPU/GPU/7860 搶佔），以含 `--api` 的啟動檔重啟，先備份舊 log。
-4. API 驗證三方向（每次 `GET /sdapi/v1/options` 確認）：
-   - VAE 下拉直接選修好的檔
-   - `sd_vae=Automatic` + 切檢查點（近旁搜尋）
-   - 切到「烤 VAE」的那顆檢查點
-5. `POST /sdapi/v1/txt2img` 出圖煙霧測試。
-
-**產出**：`models\VAE\` 下正確 LDM 格式的 VAE 檔，A1111 可正常切換檢查點與 VAE。
-
-**注意**：fp16 VAE 的 `A tensor with all NaNs` 訊息是正常現象（自動轉 fp32 重試）；A1111 重啟後會把 `Automatic` 解析出的實際 VAE 檔名寫回 `config.json`，屬正常行為；`Anything-V3.0-X-VAE.pt` 是 SD1.x 用 VAE，勿用於 SDXL。
-
-**[回到目錄](#目錄)**
+**摘要**：
+- - User hands you a `-3-report.md` (or a class/video name like `Class17-2026_08_12_晚上`) and asks for
+- 彙總分析 / 重點 / 精簡摘要 / ver2 報告.
+- - **無額外 Python 套件** — 本 skill 僅需 opencode 內建檔案讀寫與 markdown 工具即可完成，
+- 不需安裝任何 venv / pip 套件。
+- - 輸入前提：來源是 `video2text` skill 產出的 `<BASE>-3-report.md`（逐分鐘報告）。
+- - 跨平台可用（macOS / Windows）。
 
 ---
 
-## 20. open-computer-use — 開源 Computer Use（macOS/Linux/Windows）
+## 19. video-2x-speed
 
-**用途**：`open-computer-use` 是開源的 Computer Use 服務，包成 MCP server + 原生 CLI（`open-computer-use` / `ocu`），可在 macOS、Linux、Windows 上以無侵入式（Accessibility）方式操作桌面 GUI。核心工具面：`list_apps`、`get_app_state`、`click`、`perform_secondary_action`、`scroll`、`drag`、`type_text`、`press_key`、`set_value`。
+**名稱**：video-2x-speed — 影片加速（ffmpeg 200% 速度轉檔）
 
-**適用時機**：agent 需要安裝、驗證、除錯、設定或操作 Open Computer Use（原生 CLI／stdio MCP／直接 Computer Use 工具呼叫）時。
+**用途**：Convert a recorded video to 200% playback speed (or arbitrary 0.5x–100x) with ffmpeg, keeping the same resolution and fps, using Intel GPU (h264_qsv) and audio via atempo. Also supports cropping dead black bands (e.g. lecture captures: keep left white content, drop right black area) combined with the speed change in one pass. Encodes the correct speed without the classic `-t`-placement pitfall that silently produces a non-sped file. Use when asked to "加速影片", "轉成2倍速", "200% 播放速度", "倍速播放", "speed up video", "裁切黑邊", "切除黑色部分", or to produce a 2x/cropped copy of a downloaded .mp4.
 
-**前置需求**：
-- `npm i -g open-computer-use`（亦提供 `ocu` 短指令）
-- macOS 需 **14.0 以上**；首次執行需授予 **Accessibility** 與 **Screen Recording** 權限
-- Windows / Linux 需在已登入的桌面 session 內執行
-
-**核心流程**：
-1. macOS 先用 `sw_vers -productVersion` 確認 ≥ 14.0，過舊直接說明無法啟動，勿以 `doctor`/權限當解法。
-2. `open-computer-use -h` / `ocu -h` 確認已安裝；未裝或設定缺失讀 `references/installation.md`。
-3. 首次 GUI 任務前跑 `open-computer-use doctor`，權限不足引導使用者於 onboarding UI 授權。
-4. `open-computer-use call list_apps` 檢視可用 app。
-5. `open-computer-use call get_app_state --args '{"app":"TextEdit"}'` 取得目前 UI 狀態；長文字用 `text_limit:1000` 或 `"max"`；長頁/清單不完整用更大的 `max_tree_nodes` / `max_tree_depth`。
-6. 偏好以最新 `get_app_state` 回傳的 `element_index` 做元素級操作；多步驟用 `open-computer-use call --calls '<json-array>'` 讓單一 process 重用 element index 對映。
-7. 支援 MCP 的 runtime 設定 `open-computer-use mcp`（或 `ocu mcp`）直接呼叫工具。
-
-**重要規則**：
-- 視目標桌面為使用者真實 session：不瀏覽密碼管理器、私人內容或敏感 app，除非使用者明確要求。
-- **先問再執行**對外可見操作：送出、刪除、購買、批准、上傳等。
-- `get_app_state` 後才用 `element_index`；跨 session 或大變動後勿猜 index。
-- 優先語意動作與 `set_value`；座標 `click`/`scroll`/`drag` 僅在元素樹未提供更安全目標時使用。
-- macOS `drag`：除非使用者明確要求 `click_method:"global"` 等診斷行為，否則勿開 `OPEN_COMPUTER_USE_ALLOW_GLOBAL_POINTER_FALLBACKS=1`（無則 drag 僅 `app_post`，移動視窗/拖選文字/Finder 拖放無效）。
-
-**參考文件**：`references/installation.md`（安裝/MCP 安裝/macOS 權限）、`references/usage.md`（MCP config、CLI 呼叫、平台行為）、`references/troubleshooting.md`（權限/桌面 session/app 發現/動作失敗）。
-
-**注意**：本 skill 來源為第三方開源專案 `iFurySt/open-codex-computer-use`（MIT），僅供 Open Computer Use 之操作指引，因應 agent runtime 調整相關指令與 MCP 設定。
-
-**[回到目錄](#目錄)**
+**摘要**：
+- - User asks 加速影片 / 轉成 2 倍速 / 200% 播放速度 / 倍速播放 / speed up a video.
+- - Video is already downloaded (yt-dlp output, or any local .mp4). For standard downloads see the `video2text` skill.
+- - **HLS fallback download**: When yt-dlp fails to download (proxy blocks m3u8), use the Python method below.
+- Fortinet 代理會封鎖 googlevideo.com 的 m3u8/HLS 串流（403 Forbidden），導致 yt-dlp + ffmpeg
+- 無法下載。解法：用 Python `urllib` 自行下載 m3u8 播放清單與分段，再用 ffmpeg 合併。
+- ```powershell
 
 ---
 
-## 21. comsol-mcp — 透過 opencode 操作 COMSOL 6.4
+## 20. video-class-pipeline
 
-**用途**：文件化如何在本機透過 opencode 的 COMSOL MCP 工具（`comsol_*`）操作 COMSOL Multiphysics 6.4，包含 MCP server 的啟動規則、已驗證的建模→求解→評估工具序列，以及測試中發現的 client-API 陷阱。
+**名稱**：Video Class Pipeline (課程影片分析與轉檔)
 
-**適用時機**：使用者要求「用 COMSOL 建模」、「跑 COMSOL 仿真」、「使用 comsol MCP」，或要以 opencode MCP 工具操控 COMSOL。分析既有 `.mph` 檔案則用 `comsol-analyzer`。
+**用途**：Use when the user asks to analyze/process 課程影片 (course videos), YouTube live-recorded class sessions, screen-recording videos, or any workflow involving video download, frame extraction, OCR, Whisper transcription, per-minute cross-reference, keyframe PDFs, video cropping, or 2x speed conversion. Covers the Python AI course project at E:\01-Project\2026-07-B-python_ai_tvdi and the n8n course project at E:\01-Project\2026_08_n8n_itri.
 
-**前置需求**：
-- COMSOL 6.4（`C:\Program Files\COMSOL\COMSOL64\Multiphysics`）
-- Python venv（mph + jpype1）+ 本機 COMSOL MCP server fork（`wjc9011/COMSOL_Multiphysics_MCP`）
-
-**關鍵啟動規則**：
-- server **必須**以 `python -m launcher` 啟動（非 `-m src.server`）——後者 JPype JVM 會因 anyio/FastMCP 執行緒掛死。
-- `opencode.jsonc` 的 `comsol` entry 需設 command `-m launcher` 與 env `COMSOL_MCP_CORES=4`。
-
-**已驗證工具序列**：`comsol_comsol_start` → `comsol_model_create` → `comsol_model_create_component(space_dimension=3)` → `comsol_geometry_create(space_dimension=3)` → `comsol_geometry_add_block` → `comsol_geometry_build` → `comsol_physics_add_electrostatics`) → `comsol_mesh_create` → `comsol_study_create(study_type="Stationary")` → `comsol_study_solve` → `comsol_results_global_evaluate`。
-
-**Client-API 陷阱（測試實證）**：
-- physics 建立需帶 geometry tag：`comp.physics().create("es", "Electrostatics", "geom1")`，否則報「不支援空間維度: 0D」。
-- study step 需完整型別名稱（`"Stationary"`），短 id `"stat"` 失敗。
-- `HeatTransfer` 本機目前無法初始化（ASHRAE/sqlite 參考資料錯誤）；已驗證可用 `Electrostatics`、`SolidMechanics`、`LaminarFlow`。
-- `comsol_comsol_start` 會清除現有 session 與模型。
-- 冒煙測試：0.1×0.05×0.02 m 方塊，一面 5 V + 對面 ground → `es.normE` ≈ 343 V/m，求解約 3 s。
-
-**產出**：COMSOL 模型檔（`.mph`，可 `comsol_model_save` / `comsol_model_save_version` 保存）。
-
-**注意**：求解大型網格耗時，建議 `comsol_study_solve(wait=True, timeout=<s>)` 並由粗網格起步；不用時 `comsol_comsol_disconnect` 釋放 JVM 佔用的 CPU 核心。
-
-**[回到目錄](#目錄)**
+**摘要**：
+- `E:\01-Project\2026-07-B-python_ai_tvdi\`:
+- pipeline/          all scripts
+- videos.py        VIDEOS list: {name, url, id}; video_by_index(idx) 1-based
+- paths.py         BASE/VIDEO_DIR/ANALYSIS_DIR, find_ffmpeg(), workdir_for(idx), video_path_for(idx)
+- download_videos.py <start_idx>   yt-dlp sequential download, resume-safe (skips >50MB)
+- extract_frames.py <idx>          ffmpeg -> frames/frame_NNNN.jpg every 10s (fps=1/10)
 
 ---
 
-## 22. hcl-notes-forward — HCL Notes 公布函直接轉寄自動化
+## 21. video2text
 
-**用途**：自動化 HCL Notes（本機 Windows client）「公布函系統通知」未讀郵件的批次處理：依寄件者（$BySender）視圖中找到群組的未讀信件，逐封以「直接轉寄」寄給指定通訊錄群組，寄出後刪除原信。全程用 GDI 全螢幕截圖 + RapidOCR + SetCursorPos/mouse_event 螢幕絕對座標點擊的 UI 自動化。
+**名稱**：video2text — 影片分析（畫面 OCR × 語音 Whisper → Markdown + PDF）
 
-**適用時機**：使用者要求「轉寄公布函」、「批次處理 Notes 未讀通知」、「直接轉寄給群組」，或收到一份 HCL Notes 公布函批次作業。
+**用途**：Analyze recorded meeting / online-conference videos to produce a bilingual (Traditional Chinese) markdown report plus a key-frame PDF. Extracts frames every 10s and runs RapidOCR on them, transcribes the audio with faster-whisper large-v3-turbo (CPU int8) or whisper-large-v3 via OpenVINO GenAI (Intel GPU, RECOMMENDED — RTF ~0.3), converts to Traditional Chinese with OpenCC, then cross-compares OCR slide text vs. speech into a timeline table with summary analysis. Handles speed-changed videos (e.g. 2x) by restoring audio tempo and aligning both timelines. Use when asked to "分析影片", "影片轉文字", "畫面與語音重點摘要", "OCR + whisper 比對", "ASR 轉逐字稿", or to analyze a .mp4/.wav recording into markdown/PDF deliverables.
 
-**前置需求**：
-- HCL Notes client（`C:\lotus\Notes\nlnotes.exe`，本案例 11.0.1FP5）
-- RapidOCR venv（Pillow + rapidocr_onnxruntime）
-- 本 skill `scripts\` 下的截圖/OCR/點擊/z-clean 工具鏈
-
-**硬性限制（務必先知道）**：
-- JNI/伺服器路徑全死：任何 server/DB 操作會觸發互動式 `Enter password`，`createSession(...,pw)` 報 `not a server`——**不要嘗試 JNI**。
-- 「直接轉寄」寄出後**不留「已傳送」副本**，不能用已傳送驗證，只能靠收件端或使用者確認。
-- 目標群組名稱欄**只能有一組**，重複按「新增(A)」= 寄兩次。
-
-**運作流程**（逐封：開信 → 直接轉寄 → 選群組 → 新增一次 → 確定 → 完成訊息確定 → 離開 → 刪除原信）：
-1. `zclean.ps1` + `SetForegroundWindow` 確保 Notes 在前景（常被其他視窗覆蓋）。
-2. 進信箱「依寄件者」視圖，展開 `公布函系統通知` 群組；紅字=未讀、黑字=已讀（`rowclass.py` 判讀）。
-3. 單擊選列 + Enter 開信，工具列按「直接轉寄」，在「選取名稱」對話框選群組（全螢幕截圖看得到，子視窗）。
-4. 「新增(A)」只按一次 → OCR 確認「名稱」欄只出現一次 → 「確定」→ 完成訊息按「確定」→ 按「離開」關閉。
-5. 重新 OCR 定位該列 → 單擊 + Delete 刪除原信。
-6. 回報已處理清單（主旨 + 日期）。
-
-**產出**：各封公布函已直接轉寄給指定群組，未讀數減少。
-
-**注意**：點擊座標以螢幕絕對座標為準（視窗內座標 + 視窗左上角）；對話框是子視窗需 GDI 全螢幕截圖；視圖為虛擬捲動，每次重新 OCR 定位；「離開」卡住時重啟 Notes 前先與使用者確認（有信箱鎖風險）。
-
-**[回到目錄](#目錄)**
+**摘要**：
+- - User says 分析影片 / 影片轉文字 / 畫面與語音重點摘要 / OCR 與語音比對 / 會議錄影分析, or hands you a `.mp4` to summarize visually + acoustically.
+- - The pipeline targets **local offline inference** (no cloud APIs), using **Intel GPU where possible** (OpenVINO).
+- - Python 3.13: `C:\Users\N000149839\AppData\Local\Programs\Python\Python313\python.exe` (launcher `py`).
+- - **yt-dlp** installed as a pip package → run as `py -m yt_dlp ...` (NOT `yt-dlp`; the .exe is not on PATH).
+- - Analysis venv `D:\80-Opnecode\workspace\_maidate_work\venv` (pip `venv\Scripts\python.exe`).
+- Alternative: `D:\Downloads\2026-08-10-video2text\_maidate_work\venv` (if it exists).
 
 ---
 
-## 23. meeting-transcript-summary — 原始時間戳會議逐字稿 → 詳盡繁中會議彙總
+## 22. web-tools
 
-**用途**：把語音辨識（Whisper/faster-whisper 等）產出的「每行一段、帶時間戳」會議逐字稿（`*_timestamp.txt`）彙總成**詳盡繁體中文主管會議紀錄**，條列各主管問題與部屬答覆，並列出指示／須完成目標與代辦事項，存成 `<BASE>_會議彙總.md`。
+**名稱**：web-tools — 本機網頁工具環境
 
-**適用時機**：使用者提供 `*_timestamp.txt`（語音辨識逐字稿）並要求「彙總會議紀錄」、「條列各主管問題與部屬答覆」、「指示須完成目標與代辦事項」。
+**用途**：紀錄本機 web 工具環境（Crawl4AI 爬蟲、Webwright 瀏覽器 agent）的安裝路徑與使用方式。Crawl4AI 位於 ~/web-tools/crawl4ai/.venv（Python 3.12，抓網頁轉 markdown），Webwright 位於 ~/web-tools/Webwright 且其 skill 已整合於本 skills 目錄（用 Python playwright 開 Firefox）。Use when asked to "抓網頁", "爬蟲", "crawl", "用 Crawl4AI", "網頁轉 markdown", "Webwright", "瀏覽器自動化", "web scraping", or to locate the local web tools environments.
 
-**核心原則**：
-- 完整讀完才動筆：`read` 用 offset 分頁讀完整個檔案（可能數十萬字元）。
-- 語音辨識會誤聽：依專業上下文研判並在摘要中直接改正（開頭列出更正對照表），如 掌精爐→長晶爐、金擊→台積電、DeadHUB→GitHub 等。
-- 不失真：只依逐字稿內容撰寫，不自行發明會議未提到的資訊。
-- 詳盡：使用者要求更詳細時擴寫每個議題的背景、原因與論述脈絡。
-
-**輸出結構**：標題 → 引言（來源、領域、人員、時長、誤聽更正對照）→ 會議開場與人員動態 → 主管指示與部屬答覆（每議題一小節）→ 異常通報/簡報/產業情報/決策 → 目標與代辦事項表格（#、事項、負責/對象、期限）→ 備註。
-
-**產出**：`<BASE>_會議彙總.md`（UTF-8，寫完回讀校對）。
-
-**[回到目錄](#目錄)**
+**摘要**：
+- - **定位**：Python 套件，抓取網頁並轉成乾淨的 markdown，適合 LLM 處理。
+- - **Python 環境**：`~/web-tools/crawl4ai/.venv/bin/python`（Python 3.12.14）
+- - **瀏覽器**：Playwright Chromium（位於 `~/Library/Caches/ms-playwright/`）
+- **基本用法（async）：**
+- ```bash
+- ~/web-tools/crawl4ai/.venv/bin/python /tmp/xxx.py
 
 ---
 
-## 24. pdf-reader — 讀取 PDF 內容並輸出 Markdown 摘要
+## 23. webwright
 
-**用途**：讀取指定的 `.pdf` 檔案，文字型 PDF 用 PyMuPDF 直接抽取（含中文），掃描/圖片型頁面自動渲染 PNG 以 RapidOCR 辨識，再以 opencc 轉為繁體中文，輸出成 `<檔名>.md` Markdown 摘要報告。
+**名稱**：Webwright (Claude Code adaptation)
 
-**適用時機**：使用者要求「讀取 PDF」、「解析 PDF」、「PDF 內容是什麼」、「把 PDF 轉成文字」、「提取 PDF 重點」、提供 `.pdf` 要摘要或引用，或交付掃描版 PDF（無文字層）也要能讀。
+**用途**：Solve a user-specified web task code-as-action style by driving a local Playwright browser through one bash command at a time, saving screenshots and an action log into `final_runs/run_<id>/`, and visually verifying the result. Use when the user asks to automate a web task (search, filter, form-fill, multi-step flow, data extraction) and wants reusable scripts plus screenshot evidence rather than a one-shot answer.
 
-**前置需求**：
-- Python venv：PyMuPDF 1.28+、rapidocr-onnxruntime、opencc-python-reimplemented、Pillow
-- 本 skill 附**已驗證可跑**的 `extract_pdf.py`
-
-**運作流程**：
-1. `Test-Path` 確認 PDF 存在（中文/空格檔名用 `-LiteralPath`）。
-2. 執行 `extract_pdf.py <pdf> <輸出.md>`（選用 `--pages 1,3-8`、`--no-ocr`、`--dpi`）。
-3. Read 回讀 `.md` 校對（中文完整、斷頁合理；OCR 頁結構完整即可）。
-4. 若要摘要/重點，由 AI 依內容另產出整理，不把 Raw extract 當交付物。
-
-**產出**：`<檔名>.md`（UTF-8，開頭含來源/頁數/時間 meta）。
-
-**注意**：加密 PDF 需密碼（`fitz.open(src, password=...)`）；兩欄式排版可能只抽到一半，改用 `get_text("blocks")`；主控台 cp950 亂碼由腳本內 `sys.stdout.reconfigure(encoding="utf-8")` 處理；暫存 `_pdf_ocr_*.png` 自動清理。
-
-**[回到目錄](#目錄)**
+**摘要**：
+- - **Default (one-shot).** `final_script.py` solves the task for the literal
+- values the user provided. Triggered by a plain prompt or by
+- `/webwright:run <task>`.
+- - **CLI tool (parameterized).** `final_script.py` is a reusable CLI: one
+- function with a Google-style `Args:` docstring + an `argparse` wrapper
+- whose flags default to the concrete task values, so the user can rerun
 
 ---
 
-## 安裝方式
+## 24. yt-batch-download
 
-將任一 skill 資料夾複製到 `~/.config/opencode/skills/<skill-name>/`（或 `.opencode/skills/<skill-name>/`），或直接放入本機 `D:\80-Opnecode\.opencode\skills\` 即可由 opencode 自動載入。
+**名稱**：yt-batch-download — YouTube 批次下載（1080p）
 
-## 授權
+**用途**：批次下載 YouTube 影片（1080p 最高畫質），支援自訂檔名、cookies 匯入、SSL 修復、JS runtime 設定。Use when asked to "下載YouTube影片", "批次下載YT", "download YouTube videos batch", "下載課程影片", or to batch-download a list of YouTube URLs.
 
-全部 skill 均為 **MIT License**。詳見儲存庫根目錄的 `LICENSE`。
+**摘要**：
+- - User asks 下載 YouTube 影片 / 批次下載 YT / download YouTube videos batch / 下載課程影片
+- - 需要從 GitHub README 或其他來源取得 URL 列表並批次下載
+- - 需要自訂輸出檔名（依日期、時段等）
+- | 工具 | 安裝方式 | 說明 |
+- |------|----------|------|
+- | Python 3.13+ | `py` launcher | Windows 已安裝 |
+
+---
+
+## 25. yt-upload
+
+**名稱**：yt-upload — YouTube 影片上傳並公開發布
+
+**用途**：透過 Playwright 操作 YouTube Studio，將本機影片上傳並公開發布為 YouTube 影片。支援填寫詳細的標題、說明、標籤、主題標籤，設定目標觀眾（非兒童專屬）、瀏覽權限（公開/不公開/私人），並擷取發布後的影片連結。Use when asked to "上傳YouTube", "上傳影片", "upload to YouTube", "把影片上傳公開", "發布影片", or to upload a local .mp4 to YouTube as a public video.
+
+**摘要**：
+- - User 要求把本機影片上傳到 YouTube 並公開給大家觀看
+- - 需要填寫影片標題、說明、標籤等詳細資訊
+- - 需要設定影片為「公開 / 不公開 / 私人」瀏覽權限
+- - 需要取得發布後的影片連結（`https://youtu.be/VIDEO_ID`）
+- | 工具 | 說明 |
+- |------|------|
+
+---
