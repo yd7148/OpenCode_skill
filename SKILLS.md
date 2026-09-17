@@ -12,28 +12,29 @@
 | [comsol-analyzer](#1-comsol-analyzer) | Analyze COMSOL Multiphysics .mph model f |
 | [comsol-linsolver-benchmark](#2-comsol-linsolver-benchmark) | A/B benchmark a COMSOL Multiphysics mode |
 | [comsol-mcp](#3-comsol-mcp) | Drive COMSOL Multiphysics 6.4 on this ma |
-| [dwg-to-dxf](#4-dwg-to-dxf) | Convert AutoCAD DWG files to DXF format  |
-| [github-skill-sync](#5-github-skill-sync) | 同步本機 OpenCode skills（~/.config/opencode/ |
-| [hcl-notes-forward](#6-hcl-notes-forward) | 自動化 HCL Notes（本機 Windows client）的「公布函系統通 |
-| [md-to-pdf](#7-md-to-pdf) | 將繁體中文 Markdown 說明檔渲染成排版精美的 A4 多頁 PDF（標題、 |
-| [meeting-transcript-summary](#8-meeting-transcript-summary) | 將一場會議的「原始時間戳逐字稿」（*_timestamp.txt，語音辨識輸出） |
-| [open-computer-use](#9-open-computer-use) | Platform-neutral guidance for using Open |
-| [pdf-exam-extractor](#10-pdf-exam-extractor) | Use when the user asks to extract indivi |
-| [pdf-reader](#11-pdf-reader) | 讀取 PDF 檔案的內容並輸出成 Markdown 摘要報告。文字型 PDF 用 |
-| [sd-webui-vae-fix](#12-sd-webui-vae-fix) | 修復 AUTOMATIC1111 Stable Diffusion WebUI（ |
-| [taipower-exam-solver](#13-taipower-exam-solver) | Use when the user asks to process 國營事業招考 |
-| [takeout-exif-merge](#14-takeout-exif-merge) | Use when the user asks to merge Google P |
-| [taobao-cost-fill](#15-taobao-cost-fill) | 將「淘寶費用計算明細」Excel（*-taobao-淘寶-R0.xlsx）依訂單 |
-| [taobao-order-extract](#16-taobao-order-extract) | 從淘寶導出的「訂單數據.xlsx」Excel 檔案提取訂單資料（商品名稱、實付金 |
-| [tts](#17-tts) | 使用 Microsoft Edge 的 edge-tts 將文字轉成高品質語音（ |
-| [v2t-report-summary](#18-v2t-report-summary) | Summarize a per-minute video-analysis re |
-| [video-2x-speed](#19-video-2x-speed) | Convert a recorded video to 200% playbac |
-| [video-class-pipeline](#20-video-class-pipeline) | Use when the user asks to analyze/proces |
-| [video2text](#21-video2text) | Analyze recorded meeting / online-confer |
-| [web-tools](#22-web-tools) | 紀錄本機 web 工具環境（Crawl4AI 爬蟲、Webwright 瀏覽器  |
-| [webwright](#23-webwright) | Solve a user-specified web task code-as- |
-| [yt-batch-download](#24-yt-batch-download) | 批次下載 YouTube 影片（1080p 最高畫質），支援自訂檔名、cooki |
-| [yt-upload](#25-yt-upload) | 透過 Playwright 操作 YouTube Studio，將本機影片上傳並 |
+| [cv-job-application](#4-cv-job-application) | Use when 投遞或填寫 中華電信/台積電 線上履歷、要操作 rmis.ch |
+| [dwg-to-dxf](#5-dwg-to-dxf) | Convert AutoCAD DWG files to DXF format  |
+| [github-skill-sync](#6-github-skill-sync) | 同步本機 OpenCode skills（~/.config/opencode/ |
+| [hcl-notes-forward](#7-hcl-notes-forward) | 自動化 HCL Notes（本機 Windows client）的「公布函系統通 |
+| [md-to-pdf](#8-md-to-pdf) | 將繁體中文 Markdown 說明檔渲染成排版精美的 A4 多頁 PDF（標題、 |
+| [meeting-transcript-summary](#9-meeting-transcript-summary) | 將一場會議的「原始時間戳逐字稿」（*_timestamp.txt，語音辨識輸出） |
+| [open-computer-use](#10-open-computer-use) | Platform-neutral guidance for using Open |
+| [pdf-exam-extractor](#11-pdf-exam-extractor) | Use when the user asks to extract indivi |
+| [pdf-reader](#12-pdf-reader) | 讀取 PDF 檔案的內容並輸出成 Markdown 摘要報告。文字型 PDF 用 |
+| [sd-webui-vae-fix](#13-sd-webui-vae-fix) | 修復 AUTOMATIC1111 Stable Diffusion WebUI（ |
+| [taipower-exam-solver](#14-taipower-exam-solver) | Use when the user asks to process 國營事業招考 |
+| [takeout-exif-merge](#15-takeout-exif-merge) | Use when the user asks to merge Google P |
+| [taobao-cost-fill](#16-taobao-cost-fill) | 將「淘寶費用計算明細」Excel（*-taobao-淘寶-R0.xlsx）依訂單 |
+| [taobao-order-extract](#17-taobao-order-extract) | 從淘寶導出的「訂單數據.xlsx」Excel 檔案提取訂單資料（商品名稱、實付金 |
+| [tts](#18-tts) | 使用 Microsoft Edge 的 edge-tts 將文字轉成高品質語音（ |
+| [v2t-report-summary](#19-v2t-report-summary) | Summarize a per-minute video-analysis re |
+| [video-2x-speed](#20-video-2x-speed) | Convert a recorded video to 200% playbac |
+| [video-class-pipeline](#21-video-class-pipeline) | Use when the user asks to analyze/proces |
+| [video2text](#22-video2text) | Analyze recorded meeting / online-confer |
+| [web-tools](#23-web-tools) | 紀錄本機 web 工具環境（Crawl4AI 爬蟲、Webwright 瀏覽器  |
+| [webwright](#24-webwright) | Solve a user-specified web task code-as- |
+| [yt-batch-download](#25-yt-batch-download) | 批次下載 YouTube 影片（1080p 最高畫質），支援自訂檔名、cooki |
+| [yt-upload](#26-yt-upload) | 透過 Playwright 操作 YouTube Studio，將本機影片上傳並 |
 
 ---
 
@@ -85,7 +86,23 @@
 
 ---
 
-## 4. dwg-to-dxf
+## 4. cv-job-application
+
+**名稱**：cv-job-application — 履歷投遞（中華電信 / 台積電）
+
+**用途**：Use when 投遞或填寫 中華電信/台積電 線上履歷、要操作 rmis.cht.com.tw 報名表（自動填表、附件上傳、狀態檢核）、要沿用已保存的 Chrome 登入資訊（.pw-profile）登入、需要把台積電人事資料表 PDF 去識別化改成中華電信版、或要整理 E:\01-Project\2026-09-CV 履歷專案（01-原始資料 / 02-TSMC / 03-中華電信）。Covers Playwright CDP 持久化登入、圖形驗證碼 OCR + Outlook OTP、欄位 Big5 byte 上限、附件格式限制、掃描頁影像去識別化。
+
+**摘要**：
+- 專案根目錄：`E:\01-Project\2026-09-CV\`（**三個資料夾，勿再新增同層檔案**）
+- | 資料夾 | 用途 | 內容 |
+- |--------|------|------|
+- | `01-原始資料/` | **主要資料** — 所有履歷原始檔 | 7 個原始附件（保留系統檔頭檔名 `736180_<hash>_0601-劉士禎-NN-...`），**只讀不改** |
+- | `02-TSMC/` | **台積電使用** — 上傳／下載檔 + Markdown 說明 | 同批附件改乾淨檔名（`0601-劉士禎-NN-...`）+ `TSMC_Career_Profile.md` |
+- | `03-中華電信/` | **中華電信使用** — 自動化程式與產出 | `.pw-profile/`（登入資訊）、`out/`（產出）、`dumps/`、`*.py`、`中華電信履歷填寫紀錄.md`、`README.md` |
+
+---
+
+## 5. dwg-to-dxf
 
 **名稱**：dwg-to-dxf — DWG 轉 DXF 與詳細解析
 
@@ -101,7 +118,7 @@
 
 ---
 
-## 5. github-skill-sync
+## 6. github-skill-sync
 
 **名稱**：github-skill-sync — 本機 ↔ GitHub Skills 同步
 
@@ -117,7 +134,7 @@
 
 ---
 
-## 6. hcl-notes-forward
+## 7. hcl-notes-forward
 
 **名稱**：hcl-notes-forward — HCL Notes 公布函直接轉寄自動化
 
@@ -133,7 +150,7 @@
 
 ---
 
-## 7. md-to-pdf
+## 8. md-to-pdf
 
 **名稱**：md-to-pdf — 繁中 Markdown → A4 PDF（離線 Pillow 渲染）
 
@@ -149,7 +166,7 @@
 
 ---
 
-## 8. meeting-transcript-summary
+## 9. meeting-transcript-summary
 
 **名稱**：meeting-transcript-summary — 原始時間戳會議逐字稿 → 詳盡繁中會議彙總
 
@@ -165,7 +182,7 @@
 
 ---
 
-## 9. open-computer-use
+## 10. open-computer-use
 
 **名稱**：Open Computer Use
 
@@ -181,7 +198,7 @@
 
 ---
 
-## 10. pdf-exam-extractor
+## 11. pdf-exam-extractor
 
 **名稱**：PDF Exam Extractor (考題PDF擷取與OCR)
 
@@ -197,7 +214,7 @@
 
 ---
 
-## 11. pdf-reader
+## 12. pdf-reader
 
 **名稱**：pdf-reader — 讀取 PDF 內容並輸出 Markdown 摘要
 
@@ -213,7 +230,7 @@
 
 ---
 
-## 12. sd-webui-vae-fix
+## 13. sd-webui-vae-fix
 
 **名稱**：sd-webui-vae-fix — A1111 檢查點／VAE 切換失敗修復
 
@@ -229,7 +246,7 @@
 
 ---
 
-## 13. taipower-exam-solver
+## 14. taipower-exam-solver
 
 **名稱**：Taipower Exam Solver
 
@@ -245,7 +262,7 @@
 
 ---
 
-## 14. takeout-exif-merge
+## 15. takeout-exif-merge
 
 **名稱**：Google Photos Takeout EXIF Merge
 
@@ -261,7 +278,7 @@
 
 ---
 
-## 15. taobao-cost-fill
+## 16. taobao-cost-fill
 
 **名稱**：taobao-cost-fill — 淘寶費用計算明細填寫
 
@@ -277,7 +294,7 @@
 
 ---
 
-## 16. taobao-order-extract
+## 17. taobao-order-extract
 
 **名稱**：淘寶訂單資料提取與整理
 
@@ -293,7 +310,7 @@
 
 ---
 
-## 17. tts
+## 18. tts
 
 **名稱**：tts — 文字轉語音（edge-tts）
 
@@ -309,7 +326,7 @@
 
 ---
 
-## 18. v2t-report-summary
+## 19. v2t-report-summary
 
 **名稱**：v2t-report-summary — 逐分鐘報告 → 重點彙總 ver2
 
@@ -325,7 +342,7 @@
 
 ---
 
-## 19. video-2x-speed
+## 20. video-2x-speed
 
 **名稱**：video-2x-speed — 影片加速（ffmpeg 200% 速度轉檔）
 
@@ -341,7 +358,7 @@
 
 ---
 
-## 20. video-class-pipeline
+## 21. video-class-pipeline
 
 **名稱**：Video Class Pipeline (課程影片分析與轉檔)
 
@@ -357,7 +374,7 @@
 
 ---
 
-## 21. video2text
+## 22. video2text
 
 **名稱**：video2text — 影片分析（畫面 OCR × 語音 Whisper → Markdown + PDF）
 
@@ -373,7 +390,7 @@
 
 ---
 
-## 22. web-tools
+## 23. web-tools
 
 **名稱**：web-tools — 本機網頁工具環境
 
@@ -389,7 +406,7 @@
 
 ---
 
-## 23. webwright
+## 24. webwright
 
 **名稱**：Webwright (Claude Code adaptation)
 
@@ -405,7 +422,7 @@
 
 ---
 
-## 24. yt-batch-download
+## 25. yt-batch-download
 
 **名稱**：yt-batch-download — YouTube 批次下載（1080p）
 
@@ -421,7 +438,7 @@
 
 ---
 
-## 25. yt-upload
+## 26. yt-upload
 
 **名稱**：yt-upload — YouTube 影片上傳並公開發布
 

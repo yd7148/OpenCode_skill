@@ -31,6 +31,7 @@ OpenCode 本機 Skills 收藏庫。所有 skill 皆為 MIT 授權，適用於 op
 | `comsol-mcp` | 透過 opencode 操作 COMSOL 6.4（啟動規則、建模→求解→評估序列與 API 陷阱） | Python venv（mph + jpype1）+ COMSOL MCP server（Windows） |
 | `comsol-linsolver-benchmark` | COMSOL 線性求解器 A/B 基準測試（MUMPS vs cuDSS vs PARDISO）：改 `.mph` 內嵌 `dmodel.xml` 求解器節點 + comsolbatch 固定預算求解 + nvidia-smi GPU 監控 | Python（zipfile）+ COMSOL 6.4 comsolbatch（Windows） |
 | `hcl-notes-forward` | HCL Notes 公布函「直接轉寄」給群組（UI 自動化：GDI 截圖 + RapidOCR + 座標點擊） | Windows：HCL Notes client + RapidOCR venv |
+| `cv-job-application` | 中華電信／台積電線上履歷自動投遞（rmis.cht.com.tw 報名表填寫、附件上傳、狀態檢核、沿用保存的 Chrome 登入） | Playwright CDP + ddddocr + EasyOCR + pymupdf + fpdf2 + python-pptx（Windows） |
 | `meeting-transcript-summary` | 原始時間戳會議逐字稿彙總成詳盡繁中主管會議紀錄 | 無（opencode 內建工具） |
 | `pdf-reader` | 讀取 PDF（文字抽取 / 掃描 OCR）輸出繁中 Markdown 摘要 | Python venv：PyMuPDF、RapidOCR、opencc |
 
@@ -57,3 +58,4 @@ python3 -m venv .venv
 - **重型機器學習（每個 skill 有專用 venv）**：`video2text`、`pdf-exam-extractor`、`video-class-pipeline`
 - **需 WebUI 環境**：`sd-webui-vae-fix`（用 webui 內建 Python：torch + safetensors，抽取本機大檢查點的 VAE 並以 `/sdapi/v1` API 驗證）
 - **需 npm 全域工具**：`open-computer-use`（`npm i -g open-computer-use`，macOS 14+ 需授權 Accessibility + Screen Recording）
+- **瀏覽器自動化 + OCR**：`cv-job-application`（Playwright CDP + ddddocr + EasyOCR，沿用 Chromium 設定檔保存登入，Windows）
