@@ -10,31 +10,32 @@
 | Skill | 一句話說明 |
 |-------|-----------|
 | [comsol-analyzer](#1-comsol-analyzer) | Analyze COMSOL Multiphysics .mph model f |
-| [comsol-linsolver-benchmark](#2-comsol-linsolver-benchmark) | A/B benchmark a COMSOL Multiphysics mode |
-| [comsol-mcp](#3-comsol-mcp) | Drive COMSOL Multiphysics 6.4 on this ma |
-| [cv-job-application](#4-cv-job-application) | Use when 投遞或填寫 中華電信/台積電 線上履歷、要操作 rmis.ch |
-| [dwg-to-dxf](#5-dwg-to-dxf) | Convert AutoCAD DWG files to DXF format  |
-| [github-skill-sync](#6-github-skill-sync) | 同步本機 OpenCode skills（~/.config/opencode/ |
-| [hcl-notes-forward](#7-hcl-notes-forward) | 自動化 HCL Notes（本機 Windows client）的「公布函系統通 |
-| [md-to-pdf](#8-md-to-pdf) | 將繁體中文 Markdown 說明檔渲染成排版精美的 A4 多頁 PDF（標題、 |
-| [meeting-transcript-summary](#9-meeting-transcript-summary) | 將一場會議的「原始時間戳逐字稿」（*_timestamp.txt，語音辨識輸出） |
-| [open-computer-use](#10-open-computer-use) | Platform-neutral guidance for using Open |
-| [pdf-exam-extractor](#11-pdf-exam-extractor) | Use when the user asks to extract indivi |
-| [pdf-reader](#12-pdf-reader) | 讀取 PDF 檔案的內容並輸出成 Markdown 摘要報告。文字型 PDF 用 |
-| [sd-webui-vae-fix](#13-sd-webui-vae-fix) | 修復 AUTOMATIC1111 Stable Diffusion WebUI（ |
-| [taipower-exam-solver](#14-taipower-exam-solver) | Use when the user asks to process 國營事業招考 |
-| [takeout-exif-merge](#15-takeout-exif-merge) | Use when the user asks to merge Google P |
-| [taobao-cost-fill](#16-taobao-cost-fill) | 將「淘寶費用計算明細」Excel（*-taobao-淘寶-R0.xlsx）依訂單 |
-| [taobao-order-extract](#17-taobao-order-extract) | 從淘寶導出的「訂單數據.xlsx」Excel 檔案提取訂單資料（商品名稱、實付金 |
-| [tts](#18-tts) | 使用 Microsoft Edge 的 edge-tts 將文字轉成高品質語音（ |
-| [v2t-report-summary](#19-v2t-report-summary) | Summarize a per-minute video-analysis re |
-| [video-2x-speed](#20-video-2x-speed) | Convert a recorded video to 200% playbac |
-| [video-class-pipeline](#21-video-class-pipeline) | Use when the user asks to analyze/proces |
-| [video2text](#22-video2text) | Analyze recorded meeting / online-confer |
-| [web-tools](#23-web-tools) | 紀錄本機 web 工具環境（Crawl4AI 爬蟲、Webwright 瀏覽器  |
-| [webwright](#24-webwright) | Solve a user-specified web task code-as- |
-| [yt-batch-download](#25-yt-batch-download) | 批次下載 YouTube 影片（1080p 最高畫質），支援自訂檔名、cooki |
-| [yt-upload](#26-yt-upload) | 透過 Playwright 操作 YouTube Studio，將本機影片上傳並 |
+| [comsol-gpu-env](#2-comsol-gpu-env) | COMSOL 6.4 GPU/系統 CUDA 環境設定與驗證（RTX 5080 Blackwell，切換系統 CUDA 12.9.1） |
+| [comsol-linsolver-benchmark](#3-comsol-linsolver-benchmark) | A/B benchmark a COMSOL Multiphysics mode |
+| [comsol-mcp](#4-comsol-mcp) | Drive COMSOL Multiphysics 6.4 on this ma |
+| [cv-job-application](#5-cv-job-application) | Use when 投遞或填寫 中華電信/台積電 線上履歷、要操作 rmis.ch |
+| [dwg-to-dxf](#6-dwg-to-dxf) | Convert AutoCAD DWG files to DXF format  |
+| [github-skill-sync](#7-github-skill-sync) | 同步本機 OpenCode skills（~/.config/opencode/ |
+| [hcl-notes-forward](#8-hcl-notes-forward) | 自動化 HCL Notes（本機 Windows client）的「公布函系統通 |
+| [md-to-pdf](#9-md-to-pdf) | 將繁體中文 Markdown 說明檔渲染成排版精美的 A4 多頁 PDF（標題、 |
+| [meeting-transcript-summary](#10-meeting-transcript-summary) | 將一場會議的「原始時間戳逐字稿」（*_timestamp.txt，語音辨識輸出） |
+| [open-computer-use](#11-open-computer-use) | Platform-neutral guidance for using Open |
+| [pdf-exam-extractor](#12-pdf-exam-extractor) | Use when the user asks to extract indivi |
+| [pdf-reader](#13-pdf-reader) | 讀取 PDF 檔案的內容並輸出成 Markdown 摘要報告。文字型 PDF 用 |
+| [sd-webui-vae-fix](#14-sd-webui-vae-fix) | 修復 AUTOMATIC1111 Stable Diffusion WebUI（ |
+| [taipower-exam-solver](#15-taipower-exam-solver) | Use when the user asks to process 國營事業招考 |
+| [takeout-exif-merge](#16-takeout-exif-merge) | Use when the user asks to merge Google P |
+| [taobao-cost-fill](#17-taobao-cost-fill) | 將「淘寶費用計算明細」Excel（*-taobao-淘寶-R0.xlsx）依訂單 |
+| [taobao-order-extract](#18-taobao-order-extract) | 從淘寶導出的「訂單數據.xlsx」Excel 檔案提取訂單資料（商品名稱、實付金 |
+| [tts](#19-tts) | 使用 Microsoft Edge 的 edge-tts 將文字轉成高品質語音（ |
+| [v2t-report-summary](#20-v2t-report-summary) | Summarize a per-minute video-analysis re |
+| [video-2x-speed](#21-video-2x-speed) | Convert a recorded video to 200% playbac |
+| [video-class-pipeline](#22-video-class-pipeline) | Use when the user asks to analyze/proces |
+| [video2text](#23-video2text) | Analyze recorded meeting / online-confer |
+| [web-tools](#24-web-tools) | 紀錄本機 web 工具環境（Crawl4AI 爬蟲、Webwright 瀏覽器  |
+| [webwright](#25-webwright) | Solve a user-specified web task code-as- |
+| [yt-batch-download](#26-yt-batch-download) | 批次下載 YouTube 影片（1080p 最高畫質），支援自訂檔名、cooki |
+| [yt-upload](#27-yt-upload) | 透過 Playwright 操作 YouTube Studio，將本機影片上傳並 |
 
 ---
 
@@ -54,7 +55,24 @@
 
 ---
 
-## 2. comsol-linsolver-benchmark
+## 2. comsol-gpu-env
+
+**名稱**：comsol-gpu-env — COMSOL 6.4 GPU / 系統 CUDA 環境設定與驗證
+
+**用途**：COMSOL Multiphysics 6.4 的 GPU/系統 CUDA 環境設定與驗證（RTX 5080 Blackwell）。涵蓋切換到系統 CUDA 12.9.1 的版本限制（官方僅支援至 CUDA 12、cuDSS 0.7.1 只能用 bundled）、comsol.prefs 關鍵參數、以 opencode Computer Use 操作 COMSOL「偏好設定→計算中→GPU 加速」GUI 的 a11y 心得（tree item 用 app_post、對話框按 Return、element index 重開即重置、checkbox 狀態不可見），以及 nvidia-smi/deviceQuery129/bandwidthTest/rtcheck 無 GUI 驗證法與產生 Phase15 報告。Use when asked to "切換 COMSOL CUDA", "COMSOL GPU 加速", "驗證 CUDA 安裝", "cuDSS", "RTX 5080", "COMSOL 計算中 GPU 設定", or to setup/verify COMSOL GPU acceleration environment.
+
+**摘要**：
+- 官方版本限制：COMSOL 6.4 支援到 **CUDA 12**（12.4~12.9.x），**不可用 CUDA 13.x**；搭配 12.9.1 需 driver ≥ 576.57（本機 610.88）。
+- 為何切系統 CUDA：bundled CUDA 12.4.x 不帶 Blackwell `sm_120` 原生支援 → RTX 5080（CC 12.0）只會報 compute capability error（0）。
+- cuDSS 僅能用 COMSOL bundled 0.7.1（`ext\cudss\win64\cudss64_0.dll`）；系統 cuDSS root 留空；**永不覆蓋** bundled lib。
+- `comsol.prefs` 終態：`gpu.settings.usecudaroot=on`、`cudaroot=<CUDA\v12.9>`、`usecudssroot=off`、`cudssroot=`（空）、`traindnnongpu=off`。
+- Computer Use a11y：tree item 改用 `click_method:"app_post"`；對話框 OK 改按 **Return**；element index 每次重開即重置；成功訊號 = 「已找到一個相容的 CUDA 安裝」。
+- 無 GUI 驗證：`nvidia-smi`、`deviceQuery129`（Detected 1 device，CC 12.0）、`bandwidthTest`（D2D PASS）、`rtcheck`（PASS，cudaRuntimeGetVersion=12.9）。
+- 產出：`<專案根>\PhaseNN_COMSOL_6.4_GPU_Environment_Report.md`（Summary / Field Values / Verification Evidence / Final Status）。
+
+---
+
+## 3. comsol-linsolver-benchmark
 
 **名稱**：comsol-linsolver-benchmark — COMSOL 線性求解器 A/B 基準測試（MUMPS vs cuDSS）
 
@@ -70,7 +88,7 @@
 
 ---
 
-## 3. comsol-mcp
+## 4. comsol-mcp
 
 **名稱**：comsol-mcp — 透過 opencode 操作 COMSOL 6.4
 
@@ -86,7 +104,7 @@
 
 ---
 
-## 4. cv-job-application
+## 5. cv-job-application
 
 **名稱**：cv-job-application — 履歷投遞（中華電信 / 台積電）
 
@@ -102,7 +120,7 @@
 
 ---
 
-## 5. dwg-to-dxf
+## 6. dwg-to-dxf
 
 **名稱**：dwg-to-dxf — DWG 轉 DXF 與詳細解析
 
@@ -118,7 +136,7 @@
 
 ---
 
-## 6. github-skill-sync
+## 7. github-skill-sync
 
 **名稱**：github-skill-sync — 本機 ↔ GitHub Skills 同步
 
@@ -134,7 +152,7 @@
 
 ---
 
-## 7. hcl-notes-forward
+## 8. hcl-notes-forward
 
 **名稱**：hcl-notes-forward — HCL Notes 公布函直接轉寄自動化
 
@@ -150,7 +168,7 @@
 
 ---
 
-## 8. md-to-pdf
+## 9. md-to-pdf
 
 **名稱**：md-to-pdf — 繁中 Markdown → A4 PDF（離線 Pillow 渲染）
 
@@ -166,7 +184,7 @@
 
 ---
 
-## 9. meeting-transcript-summary
+## 10. meeting-transcript-summary
 
 **名稱**：meeting-transcript-summary — 原始時間戳會議逐字稿 → 詳盡繁中會議彙總
 
@@ -182,7 +200,7 @@
 
 ---
 
-## 10. open-computer-use
+## 11. open-computer-use
 
 **名稱**：Open Computer Use
 
@@ -198,7 +216,7 @@
 
 ---
 
-## 11. pdf-exam-extractor
+## 12. pdf-exam-extractor
 
 **名稱**：PDF Exam Extractor (考題PDF擷取與OCR)
 
@@ -214,7 +232,7 @@
 
 ---
 
-## 12. pdf-reader
+## 13. pdf-reader
 
 **名稱**：pdf-reader — 讀取 PDF 內容並輸出 Markdown 摘要
 
@@ -230,7 +248,7 @@
 
 ---
 
-## 13. sd-webui-vae-fix
+## 14. sd-webui-vae-fix
 
 **名稱**：sd-webui-vae-fix — A1111 檢查點／VAE 切換失敗修復
 
@@ -246,7 +264,7 @@
 
 ---
 
-## 14. taipower-exam-solver
+## 15. taipower-exam-solver
 
 **名稱**：Taipower Exam Solver
 
@@ -262,7 +280,7 @@
 
 ---
 
-## 15. takeout-exif-merge
+## 16. takeout-exif-merge
 
 **名稱**：Google Photos Takeout EXIF Merge
 
@@ -278,7 +296,7 @@
 
 ---
 
-## 16. taobao-cost-fill
+## 17. taobao-cost-fill
 
 **名稱**：taobao-cost-fill — 淘寶費用計算明細填寫
 
@@ -294,7 +312,7 @@
 
 ---
 
-## 17. taobao-order-extract
+## 18. taobao-order-extract
 
 **名稱**：淘寶訂單資料提取與整理
 
@@ -310,7 +328,7 @@
 
 ---
 
-## 18. tts
+## 19. tts
 
 **名稱**：tts — 文字轉語音（edge-tts）
 
@@ -326,7 +344,7 @@
 
 ---
 
-## 19. v2t-report-summary
+## 20. v2t-report-summary
 
 **名稱**：v2t-report-summary — 逐分鐘報告 → 重點彙總 ver2
 
@@ -342,7 +360,7 @@
 
 ---
 
-## 20. video-2x-speed
+## 21. video-2x-speed
 
 **名稱**：video-2x-speed — 影片加速（ffmpeg 200% 速度轉檔）
 
@@ -358,7 +376,7 @@
 
 ---
 
-## 21. video-class-pipeline
+## 22. video-class-pipeline
 
 **名稱**：Video Class Pipeline (課程影片分析與轉檔)
 
@@ -374,7 +392,7 @@
 
 ---
 
-## 22. video2text
+## 23. video2text
 
 **名稱**：video2text — 影片分析（畫面 OCR × 語音 Whisper → Markdown + PDF）
 
@@ -390,7 +408,7 @@
 
 ---
 
-## 23. web-tools
+## 24. web-tools
 
 **名稱**：web-tools — 本機網頁工具環境
 
@@ -406,7 +424,7 @@
 
 ---
 
-## 24. webwright
+## 25. webwright
 
 **名稱**：Webwright (Claude Code adaptation)
 
@@ -422,7 +440,7 @@
 
 ---
 
-## 25. yt-batch-download
+## 26. yt-batch-download
 
 **名稱**：yt-batch-download — YouTube 批次下載（1080p）
 
@@ -438,7 +456,7 @@
 
 ---
 
-## 26. yt-upload
+## 27. yt-upload
 
 **名稱**：yt-upload — YouTube 影片上傳並公開發布
 
