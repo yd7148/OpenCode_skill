@@ -18,13 +18,18 @@ metadata:
 
 | 項目 | 路徑 |
 |------|------|
-| 本機 skills 目錄 | `D:\80-Opnecode\.opencode\skills\`（Windows；本次同步的集合） |
-| GitHub repo 本機 clone | `C:\Users\N000149839\OpenCode_skill` |
-| GitHub 遠端 | `https://github.com/yd7148/OpenCode_skill.git`（HTTPS；`gh auth` token / credential manager，**非 SSH**） |
+| 本機 skills 目錄 | `C:\Users\admin\.config\opencode\skills\`（Windows；本次同步的集合） |
+| GitHub repo 本機 clone | `C:\Users\admin\OpenCode_skill` |
+| GitHub 遠端 | 已切至 `git@github.com:yd7148/OpenCode_skill.git`（SSH）；原為 `https://...`（HTTPS，`gh auth` / credential manager） |
 | 共用說明文件 | `README.md`、`SKILLS.md`（repo 根目錄） |
 
 本機環境：Windows PowerShell 5.1，**沒有 `rsync`**；用 `Copy-Item`/`robocopy` 取代 rsync 語法。
-遠端以 HTTPS 驗證（git 已設定 `credential.helper=manager` + `gh auth status` 登入 yd7148）。
+認證以 SSH 為主（本檔 2026-09-17 已裝 git、生成 `id_ed25519` 公鑰並上傳 GitHub）。
+
+⚠️ **GitHub SSH 連線注意**：Windows 內建 OpenSSH（9.5）連 GitHub 會失敗
+（`choose_kex: unsupported KEX method sntrup761x25519-sha512`）→ 改用
+Git for Windows 自帶的 OpenSSH：`git config core.sshCommand "C:/PROGRA~1/Git/usr/bin/ssh.exe"`
+（必須用前斜線 + 8.3 短路徑，`C:\Program Files\...` 會被 msys 拆開）。
 
 ## 通用規則（兩個方向都適用）
 
@@ -42,7 +47,7 @@ metadata:
 git -C "$env:USERPROFILE\OpenCode_skill" pull origin main
 
 # 2. 把 repo 中各 skill 同步到本機使用目錄（排除虛擬環境）
-$SRC = "$env:USERPROFILE\OpenCode_skill"; $DST = "D:\80-Opnecode\.opencode\skills"
+$SRC = "$env:USERPROFILE\OpenCode_skill"; $DST = "C:\Users\admin\.config\opencode\skills"
 Get-ChildItem -LiteralPath $SRC -Directory | Where-Object { $_.Name -ne ".git" } | ForEach-Object {
   $name = $_.Name
   Copy-Item -Path (Join-Path $_.FullName "*") -Destination (Join-Path $DST $name) -Recurse -Force `
@@ -62,7 +67,7 @@ Copy-Item "$SRC\SKILLS.md" "$DST\SKILLS.md" -Force
 git -C "$env:USERPROFILE\OpenCode_skill" fetch origin; git -C "$env:USERPROFILE\OpenCode_skill" pull origin main
 
 # 2. 把本機 skills 同步進 clone（排除虛擬環境）
-$SRC = "D:\80-Opnecode\.opencode\skills"; $DST = "$env:USERPROFILE\OpenCode_skill"
+$SRC = "C:\Users\admin\.config\opencode\skills"; $DST = "$env:USERPROFILE\OpenCode_skill"
 Get-ChildItem -LiteralPath $SRC -Directory | ForEach-Object {
   $name = $_.Name; $dest = Join-Path $DST $name
   if ((Get-ChildItem -LiteralPath $_.FullName -Force | Measure-Object).Count -eq 0) { "SKIP 空目錄: $name"; return }
@@ -73,7 +78,7 @@ Get-ChildItem -LiteralPath $SRC -Directory | ForEach-Object {
 Copy-Item "$SRC\README.md" "$DST\README.md" -Force
 Copy-Item "$SRC\SKILLS.md" "$DST\SKILLS.md" -Force
 
-# 4. 檢視變更、commit、push（HTTPS，遠端已是 https://...OpenCode_skill.git）
+# 4. 檢視變更、commit、push（origin 已為 SSH：git@github.com:yd7148/OpenCode_skill.git）
 Set-Location "$env:USERPROFILE\OpenCode_skill"
 git add -A
 git status --short
@@ -86,5 +91,7 @@ git push origin main
 - `.venv` 是各 skill 在本機的 python 虛擬環境，**永不**提交（已被各 skill 的 `.gitignore` 與上面的
   Copy-Item 排除遮蔽）。
 - 若新增了 repo 沒有的 skill，記得同步更新 `README.md` 目錄表與 `SKILLS.md` 對應章節。
-- push 用 HTTPS（`origin` remote 已設為 https URL），靠 `gh auth` token / Git Credential Manager 認證；
-  可用 `gh auth status` 確認登入狀態。
+- push 用 SSH（`origin` remote 已切為 SSH URL，需金鑰已上 GitHub）；若走 HTTPS，
+  靠 `gh auth` token / Git Credential Manager 認證，`gh auth status` 可確認。
+- SSH 驗證測試：`& "C:/Program Files/Git/usr/bin/ssh.exe" -T git@github.com`
+  （不要用 Windows 內建 `ssh`，KEX 不支援會失敗）。
