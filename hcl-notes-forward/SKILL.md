@@ -110,6 +110,16 @@ Add-Type 'using System;using System.Runtime.InteropServices;public class W{[DllI
 - **讀 memo 的「離開」有時不受點擊**：若卡住無法關閉，用 `zclean` 後 `SetForegroundWindow` 再點，或用鍵盤；仍不行就**重啟 Notes client**（taskkill + relaunch）回到乾淨工作台。**重啟前先跟使用者確認**（有信箱鎖風險）。
 - **開信用單擊+Enter**：雙擊常失敗。
 - **視圖虛擬化**：列表是虛擬捲動，每次要重新 OCR 定位列位置，不要假設固定 y。
+- **Ctrl+W 可能需按兩次**：第一次按 Ctrl+W 有時只關閉 memo 分頁但不回視圖（視窗標題仍顯示 memo 主旨）；需再按一次 Ctrl+W 才會真正回到 $BySender 視圖。若標題未變，再執行一次 Ctrl+W。
+- **視圖列位置每次操作後會重排**：開信、刪除、發送完成後視圖都會捲動/重定位；**絕對不能用上次的 y 座標**，必須每次重新掃描（rowclass.py）確認位置。
+- **視窗標題不可單獨作為「memo 是否開啟」的判斷依據**：標題會顯示「預覽窗格」中選列的主旨；**必須看工具列**（y116 區域）確認：
+  - 信箱式工具列（新增/回覆/轉寄/移入垃圾桶）= **視圖模式**
+  - memo 式工具列（轉立交辦單/直接轉寄/輸入意見後轉寄/另立新案/離開）= **memo 已開啟**
+- **完成訊息对话框座標**：`rect[884,473-1052,621]`（螢幕絕對），OK 按鈕約 (982,590)。出現延遲約 2-3 秒，需等待。
+- **不要按 (832,119)「關閉」書籤窗格鈕**：會導致視窗短暂 0x0 異常（winlist 回報 hwnd=0）。
+- **每次 bash 工具調用是獨立 PowerShell 行程**：Add-Type 定義的 class（如 F1Dlg3、R3Dlg4、ChkDlg*）在下一次調用不存在（TypeNotFound），**每次必須重新 Define**。
+- **crop.py + ocr_screen2.py 需循序執行**：平行會出 LoadImageError，用 `if ($?)` 或分開 bash 呼叫。
+- **09/16 新批次公布函**：$BySender 視圖下「公布函系統通知」群組可能包含多達 10+ 封今日未讀（不只 4 封）；務必展開群組後全數掃描處理。
 
 ## scripts\ 工具簡介
 

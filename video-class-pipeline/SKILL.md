@@ -1,6 +1,6 @@
 ---
 name: video-class-pipeline
-description: Use when the user asks to analyze/process 課程影片 (course videos), YouTube live-recorded class sessions, screen-recording videos, or any workflow involving video download, frame extraction, OCR, Whisper transcription, per-minute cross-reference, keyframe PDFs, video cropping, or 2x speed conversion. Covers the Python AI course project at E:\01-Project\2026-07-B-python_ai_tvdi and the n8n course project at E:\01-Project\2026_08_n8n_itri.
+description: Use when the user asks to analyze/process 課程影片 (course videos), YouTube live-recorded class sessions, screen-recording videos, or any workflow involving video download, frame extraction, OCR, Whisper transcription, per-minute cross-reference, keyframe PDFs, video cropping, or 2x speed conversion. Covers the Python AI course project at E:\01-Project\2026-07-B-python_ai_tvdi, the n8n course project at E:\01-Project\2026_08_n8n_itri, and the TVDI n8n course at D:\80-Opnecode\Projects\2026_08_n8n_tvdi (13 sessions, all encoded + analyzed + reported as of 2026-09-18).
 ---
 
 # Video Class Pipeline (課程影片分析與轉檔)
@@ -146,6 +146,72 @@ check header `%PDF` + trailing `%%EOF`.
 Gotcha: in make_report.py `ocr_by_min[m]` stores the whole item dict — compare
 with `item["ocr_text"]`, not `["text"]` (KeyError otherwise).
 
+## Third project: n8n course (tvdi) — Intel-only machine (2026-09-17) ✓ COMPLETE
+
+A different machine/project from the RTX 5080 setup above. Windows, **Intel UHD 770 (no NVIDIA)**,
+Python 3.13 (`py`), user `N000149839`. Both encoding (Workflow B) AND full analysis
+(ASR + OCR + reports + keyframe PDFs) are now COMPLETE for all 13 sessions.
+
+### Environment / project facts
+- Project dir: `D:\80-Opnecode\Projects\2026_08_n8n_tvdi\` (downloads + `<name>_裁切2倍速.mp4`).
+- ffmpeg/ffprobe: **v9.0 essentials** at `C:\Users\N000149839\AppData\Local\Temp\opencode\bin\`
+  (copied from `D:\80-Opnecode\Workspace\_maidate_work\ffmpeg_pkg\ffmpeg-9.0-essentials_build\bin\`);
+  `deno.exe` alongside (copied from `C:\Users\N000149839\.lmstudio\.internal\utils\deno.exe`).
+- Encoder is **`h264_qsv`** (Intel QSV), **not NVENC**, but the same two-pass + `-c copy` mux recipe
+  applies (video pass → crop + `setpts=PTS/2` + `fps=30`; audio pass → `atempo=2.0` + AAC; mux).
+  Set via `-c:v h264_qsv -preset veryfast -global_quality 24`.
+- ASR engine on this machine: **`whisper-large-v3-ov2`** (OpenVINO GenAI, Intel GPU) — see the
+  `video2text` skill; transcription of all 13 sessions finished in one background batch
+  (log `_v2t_work\logs\asr_all.log`, ~47684s audio total; per-session `asr\...\transcript_zh.json`).
+
+### Workflow B (encoding) results
+- 13 videos (`2026_08_25_上午` … `2026_09_17_上午`). 12 downloaded with the `yt-batch-download`
+  skill; the 13th was still LIVE and recorded with `--live-from-start`, then processed identically.
+- All 1920x1080 30fps; crop boundary identical on every sampled frame:
+  **`crop=1440:1080:0:0`** (right content edge x=1440; dark top rows y<67 and bottom y>1006 kept).
+- Output `<name>_裁切2倍速.mp4` = 1440x1080 h264+aac; every file's video and audio durations match
+  and equal source/2.
+- Throughput ≈ **11–12x realtime** (video pass), audio pass ≈ 100–150x; the whole ~37 h source batch
+  took ≈ 2.5 h wall clock, run sequentially, launched in the background.
+- Full recipe / resumable Python batch driver: see the `video-2x-speed` skill
+  ("Full-file QSV batch variant").
+
+### Workflow C — tvdi analysis (reports + keyframe PDFs) — per-session loop that completed all 13
+Analysis of the 2x videos is done under `_v2t_work\` in the project dir (NOT the RTX `pipeline/`
+layout). Per BASE (`2026_MM_DD_上午|下午`) the loop is:
+1. Frame extraction + RapidOCR every **15 s (2x) = 30 s orig** → `slides_text_<BASE>_非空.txt`
+   (frames with ratio < 0.35 merged into slides groups; `S###` group / `f000##` frame / 2x + orig times).
+2. Whisper ASR already complete for all 13 sessions → `transcript_zh_<BASE>.txt` + `kws_<BASE>.txt`
+   (keyword line extracts: openrouter/model/llm/ai/key/api/credential/base url/DataTable/... via
+   keyword list; a fixed `kws_` script run per session). Use `json.load(...transcript_zh.json)`
+   and slice `segments[].start/end` windows to re-verify any segment.
+3. Write `2026_<BASE>_重點整理.md` at project ROOT with the standard report sections:
+   一、課程資訊（meet.google.com/xrj-wzhn-yrv、Youtube id from `github_materials\__2026_08_25_n8n_tvdi__\link\README.md`、
+   教材 paths）｜ 二、課程時軸（2x時間|原片時間|主題）｜ 三、課程重點內容｜ 四、GitHub 教材對照表
+   ｜ 五、今日收穫總結｜ 六、附註。
+4. Edit `_v2t_work\make_pdf_v2.py` KEYFRAMES (overwrite the previous session's list; ~15 anchors,
+   titles + OCR snippet; pick OCR frames that carry the session's key teaching points) → run
+   `python make_pdf_v2.py <BASE> <BASE>` → `2026_<BASE>_關鍵幀-v2.pdf` (A4 landscape full-frame +
+   right caption column, CJK font `C:\Windows\Fonts\msjh.ttc`, pages=~13-16).
+5. Update the session todo (one `in_progress` at a time); verify file exists + PDF page count.
+
+Deliverable set now present (project root): **13 × `2026_*.md` + 13 × `2026_*_關鍵幀-v2.pdf`**.
+
+### ASR hallucination filter (tvdi)
+Whisper `請以繁體中文輸出。` repeats at every 30-min window boundary plus stock phrases
+(`請不吝點贊 訂閱 轉發 打賞支援明鏡與點點欄目`, `我是一個很好的人`, ...). Filter them out of the
+report content and keyword hits (skip segments starting `请` / containing `明鏡`, `點贊`, `我是一個很好`).
+Report convention: filter them without mentioning; keep 附註 to note they were filtered.
+
+### Session archive
+- Prior sessions 08_25 上午/下午, 08_27 上午/下午, 09_01 上午/下午, 09_03 上午 already had
+  report+PDF in the "Third project" flow iterations; the current pass added
+  09_03下午, 09_08上午/下午, 09_10上午/下午, 09_17上午 and closed the set.
+- Course repo `github_materials\__2026_08_25_n8n_tvdi__\`: folders `08_27`, `0908` (NOT `09_08`),
+  `09_01`, `09_03`, `09_10`, `n8n-ngrok`, `n8n-cloudflare`, `link`, `學員作品`. Main materai in
+  `github_materials\n8n\` (openrouter, line設定, AI_Agent\段一|段二, DataTable, Google雲端設定).
+- Each 2x frame index i → 2x time=(i-1)*15s, orig time=(i-1)*30s.
+
 ## Workflow A — batch analysis
 
 1. Edit `pipeline/videos.py` so each entry has `name` (e.g. `2026_07_03_上午`),
@@ -164,6 +230,11 @@ Observed timings (RTX 5080, ~3h video, 1090 frames):
   NVENC transcode ~6.5 min at ~413 fps (13.8x realtime).
 
 ## Workflow B — crop black bar + 2x speed (GPU)
+
+> On an **Intel-only** machine there is no NVENC — substitute `h264_qsv`
+> (`-c:v h264_qsv -preset veryfast -global_quality 24`); the two-pass + mux recipe is otherwise
+> identical. See the `video-2x-speed` skill ("Full-file QSV batch variant") and the
+> "Third project: n8n course (tvdi)" section above.
 
 1. Find the crop boundary programmatically (do NOT guess or eyeball if image
    input is unavailable). Probe `ffprobe` for width/height, then use OpenCV:

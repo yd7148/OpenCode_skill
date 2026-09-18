@@ -106,8 +106,34 @@ cj.save(ignore_discard=True, ignore_expires=True)
 ### 注意事項
 - Chrome 必須在執行中（cookies 才有解密金鑰）
 - 匯出的 cookies 檔為 Netscape 格式（`yt_cookies.txt`）
-- 若 Chrome cookie DB 被鎖定（`Could not copy Chrome cookie database`），用 `browser_cookie3` 的 `shadowcopy` 功能可繞過
+- 若 Chrome cookie DB 被鎖定（`Could not copy Chrome cookie database`），用 `browser_cookie3` 的 shadowcopy 功能可繞過
 - cookies 有時效，過期需重新匯出
+
+### ⚠️ 403 的兩種情況（2026-09-17 實測，務必分辨）
+
+| 症狀 | 原因 | 解法 |
+|------|------|------|
+| `--list-formats` **成功**列出 137/140，但下載時才 `HTTP Error 403` | **cookies 已過期**（最常見） | 重新執行 cookies 匯出腳本再下載 |
+| 剛下載完數支、接著連線失敗/403 | YouTube 暫時性反爬蟲（大量連續下載） | 等待數分鐘後重試同一個 URL 即可 |
+
+判準：**「清單成功、下載 403」= cookies 問題**，先重匯 cookies；重匯後仍失敗才當作暫時性限制。
+補下失敗檔用獨立小腳本（只含缺的那幾支）比重跑整批快；skip-if-exists 邏輯讓同一個腳本可安全重跑。
+
+## 直播（LIVE）進行中的影片：`--live-from-start`
+
+課程當天若影片仍在直播（`is_live=True`），一般 `-f 137+140` 會失敗或只抓到極短片段。
+改用 `--live-from-start` 從頭錄到直播結束，yt-dlp 會邊抓邊寫 `.part-Frag*`，結束後**自動合併**成
+完整的 `.mp4`（log 出現 `[Merger] Merging formats into "....mp4"` → `OK` → `ALL_DONE`）。
+
+```powershell
+py -m yt_dlp ... --live-from-start --wait-for-video 60 -o "$OUT" "$LIVE_URL"
+```
+
+- 進行中：目錄只有 `"<name>.f137.mp4.ytdl"`、`"<name>.f140.mp4.ytdl"` 與大量 `*-Frag*` 暫存；
+  **尚無** `<name>.mp4`，此時不要拿去後處理。
+- 已結束：出現最終 `<name>.mp4`（用 ffprobe 確認時長/解析度），`.part`/`-Frag` 清空。
+- 因此**批次流程要把 LIVE 影片排除**（跳過仍在直播者），另外用這支腳本錄；錄完再併入後處理。
+- `WARNING: Unknown codec unknown` 可忽略。
 
 ## 批次下載腳本模板
 
@@ -187,6 +213,23 @@ for i, (name, url) in enumerate(videos, 1):
 | `Requested format is not available` | 格式不可用 | 改用 `bestvideo+bestaudio` 或不指定格式 |
 | `Could not copy Chrome cookie database` | Chrome 鎖定 cookie DB | 用 `browser_cookie3` 的 shadowcopy，或重試 |
 | ffmpeg not found | ffmpeg 不在 PATH | `--ffmpeg-location` 指定完整路徑 |
+| 清單 OK 但下載 403 | cookies 過期 | 重跑 cookies 匯出腳本（見「403 的兩種情況」） |
+| 直播影片下載失敗/只抓到片段 | 影片仍在直播（`is_live=True`） | 用 `--live-from-start` 錄到結束，不要混進 VOD 批次 |
+
+## 批次系列實測筆記（2026-09-17）
+
+一支 13 集課程系列（12 支 VOD + 1 支當天 LIVE）的實務結論：
+
+- **每支一支腳本、循序下載**，內建 `skip-if-exists`（檔案 >1MB 就跳過）→ 中斷可直接重跑。
+- 檔名主控台顯示為 mojibake 是**顯示層**問題，實際檔名是正確 UTF-8；用 Python `os.listdir`
+  傾印 `_names.txt` 或直接 `ffprobe` 該檔即可確認，不必改檔名。
+- 用 **Python 子程序**（`subprocess.run(..., env=env)`）比 PowerShell 字串拼命令可靠，
+  尤其檔名/路徑含中文時；`env["PATH"] = BIN_DIR + os.pathsep + env["PATH"]` 一次注入 deno。
+- 下載完成後以 ffprobe 逐支驗證 `1920x1080` 與時長（非 0、非片段）。
+- **背景啟動**：`Start-Process -RedirectStandardOutput` 啟動長時間下載時，工具可能回報
+  `Unknown: ChildProcess.kill`，但程序其實已啟動；重複下指令會誤啟**第二個**平行程序，
+  請先 `Get-CimInstance Win32_Process -Filter "Name='python.exe'"` 確認只有一個。
+- 下載成品驗證通過後，才進入裁切/2 倍速後處理（見 `video-2x-speed`、`video-class-pipeline`）。
 
 ## 估算下載時間與大小
 
