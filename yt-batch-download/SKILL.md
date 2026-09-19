@@ -37,6 +37,11 @@ bin/
 ```
 放在固定路徑（如 `C:\Users\<user>\AppData\Local\Temp\opencode\bin\`），腳本透過 `--ffmpeg-location` 和 `--js-runtimes deno` 指定。
 
+> 2026-09-18 實測本機（N000149839）實際路徑不同：
+> - ffmpeg/ffprobe：`C:\Users\N000149839\ffmpeg\ffmpeg-9.0.1-essentials_build\bin\`
+> - deno 2.3.6：`C:\Users\N000149839\.lmstudio\.internal\utils\deno.exe`
+> 兩者只需加入 `$env:PATH`（或 Python `env["PATH"]`）即會被 yt-dlp 找到，不需要搬檔到 temp bin。
+
 ## 關鍵設定（缺一不可）
 
 YouTube 2025 年後加強反爬蟲，以下參數 **全部都需要**：
@@ -215,6 +220,32 @@ for i, (name, url) in enumerate(videos, 1):
 | ffmpeg not found | ffmpeg 不在 PATH | `--ffmpeg-location` 指定完整路徑 |
 | 清單 OK 但下載 403 | cookies 過期 | 重跑 cookies 匯出腳本（見「403 的兩種情況」） |
 | 直播影片下載失敗/只抓到片段 | 影片仍在直播（`is_live=True`） | 用 `--live-from-start` 錄到結束，不要混進 VOD 批次 |
+
+## 批次系列實測筆記（2026-09-18）— 致理 gemini sunday 16 支
+
+一支 16 集課程系列（`2026_07_26_上午` … `2026_09_13_下午`，全部一般影片 + 2 支
+`youtube.com/live/` 回放）。下載到 `D:\80-Opnecode\Projects\2026-07-chihlee_gemini_sunday\videos\`，
+全部 1920x1080（2.4–3.2 h/支，合計 ~8.3 GB）。實務結論：
+
+- **第一次整批 16 支全 403**：`--list-formats` 有列出 137/140、JS challenge 也解決（PO token
+  成功），但一下載就 `ERROR: unable to download video data: HTTP Error 403` — 這是 **cookies
+  過期**（技能裡「403 的兩種情況」第 1 種的最典型樣式）。重跑 browser_cookie3 匯出腳本就解。
+- **重新匯出後流速極快**：約 **1 支/分鐘**（每支 ~400-675 MB），16 支 ~15 分鐘完成，
+  不需等待分段下載緩慢爬。
+- **`--download-sections "*0-40"` 測試不可靠**：在整批 403 剛結束後馬上做小量測試，
+  ffmpeg 直接吃 googlevideo 的 403（`Server returned 403 Forbidden`）。這是暫時性反爬，
+  不影響後續正常整檔下載 — **不要用小量 section 測試的結果判斷 cookies/resume 是否恢復**，
+  直接重跑整批批次腳本，看 videos 目錄檔案成長。
+- **POT bgutil 版本警告無害**：`The provider plugin and the HTTP server are on different
+  versions`（plugin 1.3.2 vs server 1.3.1）僅是警告，下載照常成功，log 出現
+  `Generating a gvs PO Token for web_safari client via bgutil HTTP server` 即是正常。
+- 命名保留使用者原文：同一系列內混用「上午」與「早上」（`2026_08_16_早上` vs
+  `2026_07_26_上午`），不可自行統一。
+- 背景啟動批次（`Start-Process -RedirectStandardOutput`）後工具回報
+  `Unknown: ChildProcess.kill` 是顯示假象；確認方式：`Get-CimInstance Win32_Process
+  -Filter "Name='python.exe'"`（batch script 1 個 + yt_dlp subprocess 1 個）＋ videos
+  目錄檔案持續成長。主控台檔名 mojibake 只是顯示層問題，實際檔名是 UTF-8 正確。
+- 16 支全部要接著做「裁切 + 2 倍速 + 轉檔」的後處理（見 `video-2x-speed` skill）。
 
 ## 批次系列實測筆記（2026-09-17）
 

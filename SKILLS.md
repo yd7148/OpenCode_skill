@@ -702,6 +702,28 @@ py -m edge_tts --voice "zh-TW-HsiaoYuNeural" --text "你好。" --write-media "o
 
 ---
 
+## 25. on24-video-download — 下載 ON24 研討會影片／投影片／字幕
+
+**用途**：下載 ON24 線上研討會活動（event.on24.com）的影片、投影片與字幕，並從下載的主影片自動提取「投影片 PDF／投影片影片／時間軸摘要」。
+
+**適用時機**：使用者要求「下載 ON24 影片」、「下載研討會影片」、「從 ON24 下載」、「ON24 投影片提取」、`analyze/look at this event.on24.com console URL`，或需從 ON24 event console 取得媒體/字幕。
+
+**前置需求**：
+- Python venv：requests、curl（Fortinet Proxy 環境）、ffmpeg、perceptual hash + RapidOCR（投影片提取）
+- 需依公開媒體組態 API 構造 download/CDN URL
+
+**運作流程**：
+1. 解析 event console URL，向公開媒體組態 API 請求組態。
+2. 構造 download/CDN URL，經 Fortinet Proxy 用 curl 分段並連下載（注意 2.7GB 以上 Int32 溢位 bug）。
+3. 下載 M3U8/VTT 字幕並驗證。
+4. 以 ffmpeg 抽幀 + perceptual hash + RapidOCR 製作投影片 PDF／影片／時間軸摘要。
+
+**產出**：主影片、投影片 PDF、投影片影片、時間軸摘要、字幕。
+
+**[回到目錄](#目錄)**
+
+---
+
 ## 安裝方式
 
 將任一 skill 資料夾複製到 `~/.config/opencode/skills/<skill-name>/`（或 `.opencode/skills/<skill-name>/`），或直接放入本機 `D:\80-Opnecode\.opencode\skills\` 即可由 opencode 自動載入。
