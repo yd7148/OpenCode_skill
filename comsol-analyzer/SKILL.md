@@ -322,6 +322,67 @@ webwright venv **沒有 numpy/plotly**：生成檔用系統 `py`，量測腳本�
 - 為使用者留預覽圖：對 HTML 以瀏覽器 viewport 截 PNG 存到 `analysis\`（如 `dashboard_interactive_preview.png`）。
 - 注意：本模型**無法直接「看」截圖**（Read 圖片回傳 error），一律以像素探針量化驗證。
 
+## Comsol 6.4 mph API Gotchas（2026-09 PVT 實測）
+
+以下發現來自 2026-09-18~20 的 PVT SiC 長晶 70 hr 熱場分析專案（4.47 GB .mph 檔）。
+
+### 變數名稱：用 `T` 而非 `ht3.T`
+- `model.evaluate(['ht3.T'], ...)` 只回傳 **fluid domain** 的節點（dom 2,4,7,13），固體域（石墨 dom 3/5/14/15、粉體 dom 6、晶種 dom 8）全部 NaN。
+- 正確做法：用全域變數 `T`（或 `comp1.T`），它涵蓋所有啟用 physics 的域。
+  ```python
+  # ✅ 正確
+  v = m.evaluate(['T', 'dom', 'r'], dataset='研究 15//解 14', inner='last')
+  # ❌ 錯誤（固體域全 NaN）
+  v = m.evaluate(['ht3.T', 'dom', 'r'], dataset='研究 15//解 14', inner='last')
+  ```
+
+### 時間列表讀取
+- `t1.getString('tlist')` → 回傳原始字串（如 `'range(0,0.5,15) range(15,30,150)...'`）
+- `t1.getDoubleArray('tlist')` → 回傳展開後的浮點數組（已解析所有 range）
+- 两者都要試，getString 用於修改，getDoubleArray 用於分析。
+  ```python
+  t1 = j.sol().get('sol14').feature().get('t1')
+  tlist_str = t1.getString('tlist')        # 原始表達式
+  tarr = np.asarray(t1.getDoubleArray('tlist'))  # 展開值 (min)
+  ```
+
+### 域選擇（solid1 / fluid1）
+- `ht3` physics 有 `solid1` 和 `fluid1` 兩個子 feature，各自有自己的 domain selection：
+  ```python
+  ht3 = j.physics().get('ht3')
+  solid_doms = list(ht3.feature('solid1').selection().entities(2))  # [3,5,6,8,9,...]
+  fluid_doms = list(ht3.feature('fluid1').selection().entities(2))  # [2,4,7,13]
+  ```
+- 用這兩個列表來映射 domain number → 材料類型。
+
+### 客戶端-伺服器模式
+- **不要**在每個 script 重新 start server。啟動一次 persistent server：
+  ```powershell
+  Start-Process -FilePath "C:\Program Files\COMSOL\COMSOL64\Multiphysics\bin\win64\comsolmphserver.exe" `
+    -ArgumentList "-np 8 -port 2039 -multi on" -WindowStyle Hidden
+  ```
+- Python 連接：`c = mph.Client(port=2039, host='localhost')`（不能用 stand-alone + 同一 port 多次連接）
+- **單一 Python session 只能有一個 Client**（`Only one client can be instantiated per Python session`）。
+  需要多個連接時用不同 port 或同 port 重連（先断开舊的）。
+- 模型載入後可多次 evaluate/solve 不需 reload。
+
+### Frame-0 artifact（暫態求解重要已知問題）
+- 即使設 `useinitsol=off` + `initstudy=zero`，**frame 0（t=0）仍可能顯示舊解的高溫**而非 Tinit。
+- 真正暫態從 frame 1（第一個 time step 後）開始。
+- 判斷方法：frame 0 Tmax ≈ 舊穩態值，frame 1 開始下降/上升 → artifact。
+- 解法：evaluating 時跳過 frame 0，或從 frame 1+ 開始分析。
+
+### 輻射發射率 API 限制
+- COMSOL 6.4 的 `DiffuseSurface` feature **不公開** `emiss` / `emissivity` 屬性給 mph API。
+- 所有常見名稱（`emiss`, `emissivity`, `eps`）都回傳 `Unknown_parameter_X`。
+- 若需關閉輻射對比測試，須透過 GUI 或直接 patch `dmodel.xml`（將 `<param param="emiss"...>` 的值改為 `0`）。
+
+### Domain average 計算
+- 用 `evaluate(['T','dom','r'], inner='last')` 後在 Python 端做域過濾 + 平均。
+- 軸對稱體積權重近似：`V_d ∝ r_mean_d × n_d`（各節點乘以其 r 座標再平均）。
+- COMSOL `Avge` numerical node 在 client-server 模式下建立會失敗（`不允許此类操作`）。
+  改用 Python 端過濾比較可靠。
+
 ## Environment gotchas
 
 - **`.mph` is a ZIP file** — must rename to `.zip` or use `Copy-Item` + `Expand-Archive` (PowerShell won't expand files with `.mph` extension directly).

@@ -177,6 +177,11 @@ GPU 利用率不高屬正常：116k DOF 對 GTX 1650 太小，LU 分解最吃不
 - 不要同時跑兩個 comsolbatch（license／CPU／輸出檔衝突）。
 - 若 `solved.mph.status` 寫 `Running` 但程序已死 → 之前那次是被外力的 bash
   中斷（`[Tool execution was interrupted]`），資料仍可用但標記為「被中斷」。
+- `.mph` >4 GB 時 `comsolbatch` 載入需 5–15 s（含 solutionblock 解壓）；計時從連接成功開始算。
+- **mph client-server 單一 session 限制**：同一 Python process 只能有一個 `mph.Client()`。
+  需要多次運行時用不同 port 或在同一 client 上連續操作（不要 re-import mph）。
+- **`getString('tlist')` vs `getDoubleArray('tlist')`**：解樹的 Time feature 同時支援兩者。
+  `getString` 回傳原始 range 表達式（用於修改），`getDoubleArray` 回傳展開值（用於分析）。
 
 ## 參考檔案（這台機器）
 
