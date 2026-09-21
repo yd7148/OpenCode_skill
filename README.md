@@ -25,7 +25,7 @@ OpenCode 本機 Skills 收藏庫。所有 skill 皆為 MIT 授權，適用於 op
 | `pdf-exam-extractor` | 考題 PDF 逐題裁剪成圖 + EasyOCR 轉 Markdown | Python：pymupdf、pdfplumber、easyocr、opencv-python |
 | `taipower-exam-solver` | 國營事業招考 PDF 考題、官方解答與逐步解題 | Python `pymupdf` + 台電官網解答 PDF |
 | `takeout-exif-merge` | 將 Google 相簿 Takeout JSON EXIF 合併回同名媒體檔 | Python 3 + ExifTool |
-| `video-class-pipeline` | 課程影片批式分析（OCR × Whisper × 關鍵幀 PDF）與裁切/2倍速 | Python venv：EasyOCR、whisper、opencv + ffmpeg（NVENC） |
+| `video-class-pipeline` | 課程影片批式分析（OCR × Whisper × 關鍵幀 PDF）與裁切/2倍速 | Python venv：paddleocr（PP-OCRv5，cu129）、whisper、opencv + ffmpeg（NVENC） |
 | `sd-webui-vae-fix` | 修復 A1111 檢查點/VAE「無法切換」（diffusers→LDM VAE 格式修復） | WebUI 內建 python（torch + safetensors） |
 | `open-computer-use` | Open Computer Use（macOS/Linux/Windows 的開源 Computer Use MCP）安裝、設定與操作 | `open-computer-use` / `ocu` CLI（npm，macOS 14+） |
 | `comsol-mcp` | 透過 opencode 操作 COMSOL 6.4（啟動規則、建模→求解→評估序列與 API 陷阱） | Python venv（mph + jpype1）+ COMSOL MCP server（Windows） |

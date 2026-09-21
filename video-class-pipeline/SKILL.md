@@ -15,7 +15,18 @@ with GPU encoding on an RTX 5080.
 
 - Python: `C:\Users\4pins\AppData\Local\Programs\Python\Python312\python.exe`
 - ffmpeg/ffprobe: `C:\Users\4pins\AppData\Local\Microsoft\WinGet\Packages\yt-dlp.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-N-125875-g5d4d3bdc61-win64-gpl\bin\`
-- GPU deps installed: `torch` (CUDA), `whisper`, `easyocr`, `opencv-python`, `Pillow`, `yt-dlp`.
+- GPU deps installed: `torch` (CUDA), `whisper`, `paddlepaddle-gpu`, `paddleocr`,
+  `opencv-python`, `Pillow`, `yt-dlp`.
+- **OCR engine = PaddleOCR PP-OCRv5 server** (replaced EasyOCR 2026-09-21). Install
+  **requires the cu129 wheel** — RTX 5080 is Blackwell (sm_120), the old cu126/cu118
+  builds report `Unsupported GPU architecture`:
+  ```powershell
+  $py -m pip install paddlepaddle-gpu==3.2.2 -i https://www.paddlepaddle.org.cn/packages/stable/cu129/
+  $py -m pip install -U "paddleocr"
+  ```
+  Prereqs: NVIDIA driver supporting CUDA ≥ 12.9, Python 3.8–3.12 (this box is 3.12 ✓).
+  First `predict()` auto-downloads the det + rec models (~130 MB); subsequent runs offline.
+  Smoke test before use: `$py -c "import paddle; paddle.utils.run_check()"`.
 - NVENC encoders available: `h264_nvenc`, `hevc_nvenc`, `av1_nvenc`.
 - Chinese/non-ASCII paths break `cv2.imread` → always decode via
   `np.fromfile(path)` + `cv2.imdecode(data, cv2.IMREAD_COLOR)`.
@@ -35,7 +46,7 @@ pipeline/          all scripts
   download_videos.py <start_idx>   yt-dlp sequential download, resume-safe (skips >50MB)
   extract_frames.py <idx>          ffmpeg -> frames/frame_NNNN.jpg every 10s (fps=1/10)
   extract_audio.py <idx>           ffmpeg -> audio.wav (16k mono)
-  ocr_frames.py <idx>              EasyOCR ch_tra+en GPU, resumes, writes ocr_results.json
+  ocr_frames.py <idx>              PaddleOCR PP-OCRv5_server 繁/英 GPU, resumes, writes ocr_results.json
   whisper_transcribe.py <idx>      Whisper "medium" zh on CUDA -> whisper_results.json + .txt
   build_crossref.py <idx>          per-minute speech+best OCR frame+URLs -> crossref_per_minute.txt
   make_report.py <idx>             keyword-tagged timeline Markdown -> report_<name>.md
@@ -75,7 +86,7 @@ videos.py              VIDEOS list {name, file, id, url}; video_by_index(idx) 1-
                        idx 1 = 2026_08_20_上午 (e1D1cA5qEsE), idx 2 = 2026_08_20_下午 (d837e9MWcEI)
                        idx 3 = 2026_08_21_上午 (PMVQaNTi_zg), idx 4 = 2026_08_21_下午 (1i39KP64Kt4)
 extract_frames.py <idx>   frames/frame_NNNN.jpg every 10s
-ocr_frames.py <idx>       EasyOCR ch_tra+en GPU, resume-safe -> ocr_results.json
+ocr_frames.py <idx>       PaddleOCR PP-OCRv5_server 繁/英 GPU, resume-safe -> ocr_results.json
 extract_audio.py <idx>    audio.wav 16k mono
 whisper_transcribe.py <idx>  Whisper medium zh CUDA -> whisper_results.json + whisper_transcription.txt
 build_github_index.py     verified term index from github_materials/ clones -> github_index.json
@@ -86,9 +97,12 @@ make_report.py <idx>      report_<name>.md: timeline table, URL frames, GH hit s
 make_keyframes_pdf.py <idx>  keyframes_<name>.pdf — ONE frame per page
 ```
 
-Observed timings (RTX 5080): OCR 0.76–0.82 f/s → 460 frames ≈ 9.5 min,
-790 frames ≈ 17 min; Whisper medium zh CUDA: 77-min audio → ~6.5 min
-(2412 segs), 131-min audio → ~7.5 min (3069 segs). The Whisper tqdm bar can
+Observed timings (**pre-PaddleOCR**, EasyOCR era — re-measure after migration):
+OCR 0.76–0.82 f/s → 460 frames ≈ 9.5 min, 790 frames ≈ 17 min;
+Whisper medium zh CUDA: 77-min audio → ~6.5 min (2412 segs), 131-min audio →
+~7.5 min (3069 segs). PP-OCRv5 server predicts in ~8 ms/frame; expect the whole
+OCR stage to drop well below the EasyOCR figure (dominated by startup + per-frame
+det/rec scheduling, not inference). The Whisper tqdm bar can
 stall/dip wildly mid-run (e.g. 300→9000 frames/s) — cosmetic, it finishes fine.
 
 User's preferred run pattern (stated explicitly): process videos ONE at a time,
@@ -123,8 +137,9 @@ In make_report.py such segments are excluded from the timeline and counted in a
 「資料品質備註」 section. Observed counts vary a lot per video: 63 segments in one
 114-min video, 1 in another, and **0 in both 08_20 videos** — always run the
 filter, never assume.
-Also note OCR browser-menu garbled Chinese there (楢案=檔案 class errors) as a
-known EasyOCR limitation so users don't attribute it to content.
+Also note browser-menu garbled Chinese (楢案=檔案 style errors) occurred under
+EasyOCR; PP-OCRv5 (繁中準確率 93.29%) is expected to reduce these — still spot-check
+a few frames per video and never attribute a garble to content.
 
 Verification recipe used after each video (all green on 08_20 batch):
 - `ocr_results.json` item count == frame count, 0 empty ocr_text
@@ -212,6 +227,48 @@ Report convention: filter them without mentioning; keep 附註 to note they were
   `github_materials\n8n\` (openrouter, line設定, AI_Agent\段一|段二, DataTable, Google雲端設定).
 - Each 2x frame index i → 2x time=(i-1)*15s, orig time=(i-1)*30s.
 
+### PaddleOCR PP-OCRv5 server — ocr_frames.py 設計
+
+Replace the old EasyOCR call site in `pipeline/ocr_frames.py` with the PaddleOCR 3.x API
+(PaddleOCR 3.x + PP-OCRv5 server models; `lang="ch"` covers 繁中+簡中+英+日 in ONE model,
+繁中準確率 93.29%):
+
+```python
+import json, glob, io, sys
+import numpy as np, cv2
+from paddleocr import PaddleOCR
+
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
+
+ocr = PaddleOCR(
+    lang="ch",                       # uses PP-OCRv5_server_det + PP-OCRv5_server_rec
+    use_doc_orientation_classify=False,   # no card/scan doctor needed for screen frames
+    use_doc_unwarping=False,
+    use_textline_orientation=False,
+    device="gpu",                    # RTX 5080; omit -> auto (gpu if available)
+)
+
+def ocr_frame(path):
+    res = ocr.predict(path)          # accept str path (cv2.imread chinese-path bug also
+    r = res[0]                       #  affects paddle? -> pass np.ndarray via np.fromfile+imdecode)
+    texts = [t for t, s in zip(r.rec_texts, r.rec_scores) if float(s) >= 0.75]
+    boxes = [[[int(x), int(y)] for x, y in p] for p in r.rec_polys]
+    return texts, boxes
+```
+
+- **Schema preservation (CRITICAL)**: `make_report.py` reads the item dict via
+  `item["ocr_text"]`. Before overwriting, read one existing `ocr_results.json` and copy the
+  exact item keys (frame/ocr_text/score/box…) into the PaddleOCR writer — keep `ocr_text`
+  unchanged, `boxes` as `[[[x,y]…4pt], …]`. Wrong keys silently blank the report.
+- **Resume-safe**: skip frames whose `ocr_results.json` entry already exists (same as EasyOCR
+  era) — re-running after a timeout just continues.
+- **Score cutoff 0.75** mirrors the old filter; drop the meeting-clock / chat `+N` / truncated
+  name-badge / brand-watermark noise the same way as before.
+- Loading is one-time ~1–2 s; first call downloads models (~130 MB). PaddleOCR 3.x prints loud
+  inference logs — ignore or route to stderr.
+- Chinese/non-ASCII paths: pass the frame as `np.ndarray` (`np.fromfile` + `cv2.imdecode`) to
+  `ocr.predict` to dodge filesystem path bugs.
+
 ## Workflow A — batch analysis
 
 1. Edit `pipeline/videos.py` so each entry has `name` (e.g. `2026_07_03_上午`),
@@ -225,8 +282,8 @@ Report convention: filter them without mentioning; keep 附註 to note they were
 4. Build the combined deliverables: `build_summary.py` then
    `build_all_frames_pdf.py`.
 
-Observed timings (RTX 5080, ~3h video, 1090 frames):
-- frame extraction ~2-4 min, OCR ~24 min (0.77 f/s), whisper ~8 min,
+Observed timings (RTX 5080, ~3h video, 1090 frames; OCR figure is pre-PaddleOCR):
+- frame extraction ~2-4 min, OCR ~24 min (0.77 f/s, EasyOCR — re-measure), whisper ~8 min,
   NVENC transcode ~6.5 min at ~413 fps (13.8x realtime).
 
 ## Workflow B — crop black bar + 2x speed (GPU)
@@ -239,8 +296,10 @@ Observed timings (RTX 5080, ~3h video, 1090 frames):
 1. Find the crop boundary programmatically (do NOT guess or eyeball if image
    input is unavailable). Probe `ffprobe` for width/height, then use OpenCV:
    column-mean profile to find the rightmost bright column (`colmean > 30`),
-   and EasyOCR with `detail=1` bounding boxes on the top-right quadrant to
-   confirm the time/date text (e.g. "上午8:55") sits inside the white region.
+   and PaddleOCR (PP-OCRv5) detect on the top-right quadrant crop to
+   confirm the time/date text (e.g. "上午8:55") sits inside the white region —
+   the date/time text is the box whose `rec_texts` matches a `\d+月\d+日` /
+   `上午|下午\s*\d+:\d+` pattern; check its `dt_polys` stays left of the boundary.
    Confirm the boundary is stable by sampling several timestamps.
    - Sample at t = [60, 600, 1800, 3600, 5400, 7200, near-end]; take the
      majority value. Early samples can disagree: an intro/loading screen has a
@@ -283,8 +342,8 @@ Observed timings (RTX 5080, ~3h video, 1090 frames):
   `Get-ChildItem`/`where.exe ffmpeg` if it changes.
 - `whisper_results.json` segments: `[{start, end, text}]`; build crossref by
   bucketing `start//60`.
-- OCR text is noisy for browser UI text (garbled Chinese) — use keyword regex
-  hits and URL extraction, not exact matching.
+- OCR text is noisy for browser/screen UI text (some garbled Chinese remains even
+  under PaddleOCR) — use keyword regex hits and URL extraction, not exact matching.
 - ffmpeg one-pass combined video+audio transcode truncates the AAC track; use
   the two-pass + `-c copy` mux from Workflow B. Verify both stream durations.
 - Never `git add` the videos/analysis output (hundreds of GB). Only commit
