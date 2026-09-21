@@ -17,6 +17,10 @@ with GPU encoding on an RTX 5080.
 - ffmpeg/ffprobe: `C:\Users\4pins\AppData\Local\Microsoft\WinGet\Packages\yt-dlp.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-N-125875-g5d4d3bdc61-win64-gpl\bin\`
 - GPU deps installed: `torch` (CUDA), `whisper`, `paddlepaddle-gpu`, `paddleocr`,
   `opencv-python`, `Pillow`, `yt-dlp`.
+- **ASR engine = Breeze-ASR-25** (MediaTek: Whisper-large-v2 fine-tune for Taiwanese
+  Mandarin + 中英混用 + 字幕級時間戳), switching 2026-09-21 — still evaluating vs
+  `whisper`/`sensevoice` via `--engine`. Deps: `faster-whisper` (+ `transformers` HF
+  fallback for Blackwell), and `funasr==1.3.29` only for the SenseVoice backup path.
 - **OCR engine = PaddleOCR PP-OCRv5 server** (replaced EasyOCR 2026-09-21). Install
   **requires the cu129 wheel** — RTX 5080 is Blackwell (sm_120), the old cu126/cu118
   builds report `Unsupported GPU architecture`:
@@ -47,7 +51,7 @@ pipeline/          all scripts
   extract_frames.py <idx>          ffmpeg -> frames/frame_NNNN.jpg every 10s (fps=1/10)
   extract_audio.py <idx>           ffmpeg -> audio.wav (16k mono)
   ocr_frames.py <idx>              PaddleOCR PP-OCRv5_server 繁/英 GPU, resumes, writes ocr_results.json
-  whisper_transcribe.py <idx>      Whisper "medium" zh on CUDA -> whisper_results.json + .txt
+  whisper_transcribe.py <idx>      Breeze-ASR-25 on CUDA (default), --engine whisper|sensevoice -> whisper_results.json + .txt
   build_crossref.py <idx>          per-minute speech+best OCR frame+URLs -> crossref_per_minute.txt
   make_report.py <idx>             keyword-tagged timeline Markdown -> report_<name>.md
   make_keyframes_pdf.py <idx>      contact-sheet PDF of important frames -> keyframes_<name>.pdf
@@ -88,7 +92,7 @@ videos.py              VIDEOS list {name, file, id, url}; video_by_index(idx) 1-
 extract_frames.py <idx>   frames/frame_NNNN.jpg every 10s
 ocr_frames.py <idx>       PaddleOCR PP-OCRv5_server 繁/英 GPU, resume-safe -> ocr_results.json
 extract_audio.py <idx>    audio.wav 16k mono
-whisper_transcribe.py <idx>  Whisper medium zh CUDA -> whisper_results.json + whisper_transcription.txt
+whisper_transcribe.py <idx>  Breeze-ASR-25 on CUDA (--engine whisper|sensevoice) -> whisper_results.json + whisper_transcription.txt
 build_github_index.py     verified term index from github_materials/ clones -> github_index.json
 gh_match.py               find_matches(text) against the index; extract_urls()
 build_crossref.py <idx>   per-minute speech + best OCR frame + URLs + GH matches
@@ -100,7 +104,7 @@ make_keyframes_pdf.py <idx>  keyframes_<name>.pdf — ONE frame per page
 Observed timings (**pre-PaddleOCR**, EasyOCR era — re-measure after migration):
 OCR 0.76–0.82 f/s → 460 frames ≈ 9.5 min, 790 frames ≈ 17 min;
 Whisper medium zh CUDA: 77-min audio → ~6.5 min (2412 segs), 131-min audio →
-~7.5 min (3069 segs). PP-OCRv5 server predicts in ~8 ms/frame; expect the whole
+~7.5 min (3069 segs) — **also pre-Breeze-ASR**, re-measure after the engine switch. PP-OCRv5 server predicts in ~8 ms/frame; expect the whole
 OCR stage to drop well below the EasyOCR figure (dominated by startup + per-frame
 det/rec scheduling, not inference). The Whisper tqdm bar can
 stall/dip wildly mid-run (e.g. 300→9000 frames/s) — cosmetic, it finishes fine.
@@ -131,7 +135,8 @@ Method that works:
 
 ### Whisper hallucination filtering
 
-Whisper zh invents stock phrases on silence/noise. Filter with a HALLU regex:
+Whisper zh invents stock phrases on silence/noise (Breeze-ASR-25, still Whisper-based,
+reduces but does not remove this; SenseVoice mostly removes it). Filter with a HALLU regex:
 `点赞|打赏|明镜与点点|Amara\.org|谢谢观看|謝謝觀看|訂閱.{0,6}轉發|字幕.{0,4}提供`.
 In make_report.py such segments are excluded from the timeline and counted in a
 「資料品質備註」 section. Observed counts vary a lot per video: 63 segments in one
@@ -269,6 +274,56 @@ def ocr_frame(path):
 - Chinese/non-ASCII paths: pass the frame as `np.ndarray` (`np.fromfile` + `cv2.imdecode`) to
   `ocr.predict` to dodge filesystem path bugs.
 
+### ASR engine migration — Breeze-ASR-25 (whisper_transcribe.py 設計)
+
+Swap the Whisper "medium" zh call site in `pipeline/whisper_transcribe.py` to
+**Breeze-ASR-25** (MediaTek: Whisper-large-v2 (1.55B) fine-tune for Taiwanese Mandarin +
+中英句內/句外混用 + 強化時間戳對齊; CommonVoice zh-TW WER 7.97 vs Whisper-large-v2 9.84 /
+large-v3 8.95; ML-lecture-long 4.98 vs 6.13). Native 繁體 output — no OpenCC needed on this
+path. Status: switching 2026-09-21; the old engine stays behind `--engine` until the A/B eval.
+
+**One script, three engines (`--engine {whisper|breeze|sensevoice}`, default `breeze`):**
+
+- `breeze` (primary) — load a CTranslate2 port with faster-whisper:
+  `WhisperModel("SoybeanMilk/faster-whisper-Breeze-ASR-25", device="cuda",
+  compute_type="float16")` (or `phate334/Breeze-ASR-25-ct2`); segments natively carry
+  `start/end/text`.
+  ⚠️ **Blackwell smoke test first**: CTranslate2 may not have sm_120 kernels yet (a known
+  Breeze guide falls back to HF on Blackwell). If CT2 load/run fails, use the HF path from
+  the model card: `WhisperForConditionalGeneration` + `WhisperProcessor` +
+  `AutomaticSpeechRecognitionPipeline(..., chunk_length_s=0, return_timestamps=True)`,
+  bf16 + `attn_implementation="sdpa"`. Same segment schema either way.
+- `sensevoice` (backup, fastest ≈ 170x realtime, zh CER 7.81%) — `funasr==1.3.29`:
+  ```python
+  from funasr import AutoModel
+  model = AutoModel(model="iic/SenseVoiceSmall", vad_model="fsmn-vad",
+                    vad_kwargs={"max_single_segment_time": 30000}, device="cuda:0")
+  res = model.generate(input="audio.wav", cache={}, language="auto", use_itn=True,
+                       batch_size_s=60, merge_vad=True, sentence_timestamp=True)
+  # segs = [(s["start"]/1000, s["end"]/1000, clean(s["text"]))
+  #          for s in res[0]["sentence_info"]]
+  ```
+  **輸出是簡中 → `OpenCC("s2twp")` 先轉繁體**; strip `<|...|>`/emotion/event tags with
+  `rich_transcription_postprocess`. Needs funasr ≥ 1.3.29 for VAD segment timestamps.
+- `whisper` (original fallback) — keep the existing `Whisper("medium", device="cuda",
+  language="zh")` path untouched.
+
+- **Schema preservation (CRITICAL)**: `build_crossref.py` buckets by `start//60`;
+  `make_report.py` reads `{start, end, text}`. Before overwriting, read one existing
+  `whisper_results.json` and copy the exact keys; write segments as
+  `[{"start": s, "end": e, "text": t}, ...]`. Wrong keys silently blank the timeline.
+- **繁中策略**: `breeze` outputs 繁體 natively (keep as-is); `sensevoice` emits 簡中 —
+  `OpenCC("s2twp")` only on that path. Do NOT apply OpenCC to breeze output (double
+  conversion corrupts code-mixed text).
+- **Hallucination**: keep the HALLU regex — breeze (Whisper-based) still echoes stock
+  phrases on silence occasionally; sensevoice (non-autoregressive + VAD) largely removes them.
+- **A/B eval first (Phase 3), no silent default flip**: on one existing
+  `analysis/<name>/audio.wav`, run all three engines and record RTF (medium-zh CUDA
+  baseline: 77-min audio → ~6.5 min ≈ 12x), segment count, last-segment end vs ffprobe
+  duration, HALLU-regex hit count, and a proper-noun spot-check for the session (model
+  names / API terms / `楢案→檔案`-style garble). Only switch the default once breeze wins
+  or ties on those.
+
 ## Workflow A — batch analysis
 
 1. Edit `pipeline/videos.py` so each entry has `name` (e.g. `2026_07_03_上午`),
@@ -282,7 +337,8 @@ def ocr_frame(path):
 4. Build the combined deliverables: `build_summary.py` then
    `build_all_frames_pdf.py`.
 
-Observed timings (RTX 5080, ~3h video, 1090 frames; OCR figure is pre-PaddleOCR):
+Observed timings (RTX 5080, ~3h video, 1090 frames; OCR figure is pre-PaddleOCR,
+whisper figure is pre-Breeze-ASR — re-measure both):
 - frame extraction ~2-4 min, OCR ~24 min (0.77 f/s, EasyOCR — re-measure), whisper ~8 min,
   NVENC transcode ~6.5 min at ~413 fps (13.8x realtime).
 
