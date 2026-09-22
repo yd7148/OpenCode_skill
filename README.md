@@ -35,6 +35,7 @@ OpenCode 本機 Skills 收藏庫。所有 skill 皆為 MIT 授權，適用於 op
 | `cv-job-application` | 中華電信／台積電線上履歷自動投遞（rmis.cht.com.tw 報名表填寫、附件上傳、狀態檢核、沿用保存的 Chrome 登入） | Playwright CDP + ddddocr + EasyOCR + pymupdf + fpdf2 + python-pptx（Windows） |
 | `meeting-transcript-summary` | 原始時間戳會議逐字稿彙總成詳盡繁中主管會議紀錄 | 無（opencode 內建工具） |
 | `pdf-reader` | 讀取 PDF（文字抽取 / 掃描 OCR）輸出繁中 Markdown 摘要 | Python venv：PyMuPDF、RapidOCR、opencc |
+| `mate-engine-anim-patch` | 擴充已編譯 Unity 的 Mate Engine X 動作數量（改寫 DLL 中 Idle/Dance 輪播常數，讓 BlendTree 全部動畫啟用） | Python（dnfile/dncil + UnityPy）+ Mono.Cecil + 內建 csc（Windows） |
 
 ## 安裝
 
@@ -60,3 +61,4 @@ python3 -m venv .venv
 - **需 WebUI 環境**：`sd-webui-vae-fix`（用 webui 內建 Python：torch + safetensors，抽取本機大檢查點的 VAE 並以 `/sdapi/v1` API 驗證）
 - **需 npm 全域工具**：`open-computer-use`（`npm i -g open-computer-use`，macOS 14+ 需授權 Accessibility + Screen Recording）
 - **瀏覽器自動化 + OCR**：`cv-job-application`（Playwright CDP + ddddocr + EasyOCR，沿用 Chromium 設定檔保存登入，Windows）
+- **已編譯 Unity 修改**：`mate-engine-anim-patch`（以 dnfile/dncil 反組譯 + UnityPy 驗證 BlendTree，Mono.Cecil 重寫 IL 常數，Windows）

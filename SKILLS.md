@@ -36,6 +36,7 @@
 | [webwright](#25-webwright) | Solve a user-specified web task code-as- |
 | [yt-batch-download](#26-yt-batch-download) | 批次下載 YouTube 影片（1080p 最高畫質），支援自訂檔名、cooki |
 | [yt-upload](#27-yt-upload) | 透過 Playwright 操作 YouTube Studio，將本機影片上傳並 |
+| [mate-engine-anim-patch](#28-mate-engine-anim-patch) | 擴充已編譯 Unity 的 Mate Engine X 動作數量（改寫 DLL 內 |
 
 ---
 
@@ -469,5 +470,30 @@
 - - 需要取得發布後的影片連結（`https://youtu.be/VIDEO_ID`）
 - | 工具 | 說明 |
 - |------|------|
+
+---
+
+## 28. mate-engine-anim-patch
+
+**名稱**：mate-engine-anim-patch — Mate Engine X（已編譯 Unity）動作數量擴充
+
+**用途**：把 Mate Engine X 3.3.0（`MateEngineX_Data\Managed\Assembly-CSharp.dll`，Mono 後端、無原始碼）中
+`AvatarAnimatorController` 寫死的動作輪播常數提高，讓 BlendTree 內「已存在但沒被輪播」的 Idle / 舞蹈動畫
+全部啟用：`totalIdleAnimations` 10→19（19 個 PET_IDLE）、`DANCE_CLIP_COUNT` 5→13（13 支 PET_DANCING）。
+流程：dnfile+dncil 反組譯 `.ctor` 定位常數 → UnityPy 驗證 AnimatorController（pathid 554）BlendTree 實際葉子數
+→ 判斷可否同長度 hex 修改（`ldc.i4.s 10`→`ldc.i4.s 19` 可直接改 byte `1F 0A`→`1F 13`），
+否則用 **Mono.Cecil** 重寫 IL（`ldc.i4.5` 1 byte 換 `ldc.i4.s` 2 byte 會位移後續 method RVA，**不可**手工插 byte）
+→ dnfile 全量反組譯驗證後才覆蓋正式檔（`.bak` 為還原點）。
+Use when asked to 增加 Mate 動作 / 增加 idle 數量 / 增加舞蹈數量 / 擴充 mate 動作 / mate idle 輪播 /
+patch MateEngine 動畫計數 / mate engine anim patch。
+
+**摘要**：
+- - **無原始碼**：只改 `Assembly-CSharp.dll`；欄位 token `totalIdleAnimations=0x04000144`、`DANCE_CLIP_COUNT=0x04000147`。
+- - **先驗證 BlendTree 再動手**：Idle 樹（State 4）node[1] clipIDs 0..18=19、Dance 樹（State 2）clipIDs 42..54=13。
+- - **確認欄位只被 .ctor 寫入**（全 IL stfld 掃描）且場景無序列化覆寫，patch ctor 即生效。
+- - **同長度才 hex 改**；會變長度一律 Mono.Cecil（本機已編譯 `PatchField.exe`），改完離線全量驗證。
+- - 工具：`matedlltools`（dnfile+dncil）、`unitypy`、`cecil\PatchField.exe`、csc → 皆在
+  `C:\Users\USER\AppData\Local\Temp\opencode\` 下（見 SKILL.md）。
+- - **Husbando 模式**僅 9 個 HUS_IDLE，IdleIndex≥8 clamp 屬正常；BlendTree 葉子數即為可設定上限。
 
 ---
