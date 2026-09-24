@@ -1,6 +1,6 @@
 ---
 name: comsol-analyzer
-description: Analyze COMSOL Multiphysics .mph model files by extracting and parsing their internal XML/JSON structure. Produces a detailed Traditional Chinese markdown report covering model metadata, parameters, physics interfaces, geometry, materials, studies, and mesh. Use when asked to "分析 COMSOL 模型", "說明 .mph 檔案", "COMSOL 模型結構", "comsol model analysis", or to examine a .mph file.
+description: Analyze COMSOL Multiphysics .mph model files by extracting and parsing their internal XML/JSON structure. Produces a detailed Traditional Chinese markdown report covering model metadata, parameters, physics interfaces, geometry, materials, studies, and mesh. Use when asked to "分析 COMSOL 模型", "說明 .mph 檔案", "COMSOL 模型結構", "comsol model analysis", or to examine a .mph file. Also use for COMSOL 續解 / 帶窗奇異性診斷 / comsolbatch Java 求解腳本 / 暫態求解器疑難排解 (time-dependent solve experiments, continuing solves past stored time, comsolbatch Java scripting, solver-failure diagnosis).
 license: MIT
 compatibility: opencode
 metadata:
@@ -382,6 +382,52 @@ webwright venv **沒有 numpy/plotly**：生成檔用系統 `py`，量測腳本�
 - 軸對稱體積權重近似：`V_d ∝ r_mean_d × n_d`（各節點乘以其 r 座標再平均）。
 - COMSOL `Avge` numerical node 在 client-server 模式下建立會失敗（`不允許此类操作`）。
   改用 Python 端過濾比較可靠。
+
+## comsolbatch Java 續解與帶窗奇異性診斷（2026-09 FCFC 線圈專案實測）
+
+以下發現來自 2026-09-11 的 FCFC 感應線圈暖態暫態續解專案（原始檔 4.3 GB .mph、目標 0→120 min）。是「分析」之外另一種高價任務：**用 Java + comsolbatch 改設定並重跑求解**。
+
+### 框架與冷啟動限制（最重要）
+- 編譯：`comsolcompile.exe <Class>.java`（error 詳見 `C:\Users\<user>\.comsol\v64\logs\compile*.log`）；執行：`comsolbatch.exe -inputfile <Class>.class`。
+- 標準骨架：`ModelUtil.load("Model", IN_FILE)` → 反射改特徵/屬性 → `model.sol("sol1").runAll()` → `model.save(OUT_FILE)`。
+- **無暖啟動（cold-start only）**：comsolbatch 無法由已存解熱啟動續跑（`useinitsol` 也救不了）→ 每個帶內實驗都必須由 t=0 全段重解。實測每次 0→120 min 到達故障帶需 ~10–25 min。
+- comsolbatch 每次結束（成功或失敗）都會在 workdir 自動寫 `<Class>_Model.mph`（4.5 GB）+ `.status`——**必須清理**，否則連跑幾次就爆碟。
+
+### 背景執行（opencode bash 工具注意）
+- 前台跑長求解會被工具 timeout 殺掉整棵子程序樹 → 一律 `Start-Process -RedirectStandardOutput $log ... -WindowStyle Minimized` 背景跑，再輪詢。
+- 輪詢節奏：每 ~110 s 檢查 `Get-Process comsolbatch` 的 CPU／進度 %（log 中的 `���e�{��: NN %` 為亂碼的「進度」）／log tail 有無 `SOLVE FINISHED` 或「相依變數出現複數」。
+- 單次 bash 呼叫若同時含長 `Start-Sleep` + 其他命令，可能觸發 `ChildProcess.kill` —— 盡量一次只做一件事。
+
+### Java 反射 API（comp1 / common / physics feature）
+- `model.component("comp1")` 回傳 `ModelNodeMEClient`（編譯期無 `feature()`）→ 一律 `getClass().getMethod(...).invoke(...)` 反射呼叫。
+- 移動網格：`component("comp1").common()` 回 `ComponentCommonListMEClient`，`tags()` 得特徵清單、`get(tag)` 得 `CommonFeatureMEClient`。
+  - FCFC 實例特徵：`free1`（自由位移）、`disp1`（PrescribedMeshDisplacement，值 [0,0,0]）、`pnmv1`（prescribedNormalVelocity，**運動來源 = G_mmh**）、`sym1`、`pnmd1`（[0]）。
+  - 方法：`getString` / `getStringArray` / `getStringMatrix` / `hasProperty` / `getAllowedPropertyValues` / `set(String,String)`。
+- physics feature 同理（例如 `model.physics("rad").feature("dsurf1")`）。
+- **凍結移動網格技巧**：`set("prescribedNormalVelocity","G_mmh*(t<=4800[s])")`，再用 `getString` 回讀確認生效（pnmv1 在 comp1.common 之下，不在 physics 下）。
+- 注意：停用的 obsolete feature（如 rad 的 `os1` OpaqueSurface，`entityFlags` 含 `DISABLED`）**不能設屬性**（拋「無法設定屬性」）。
+
+### RadiationSettings / Time solver 屬性名實測
+- `prop("RadiationSettings")` **可寫** 的屬性：
+  - `viewFactorUpdateThreshold`：`everyIteration` / `everyNTime`
+  - `viewFactorsUpdateTime`：**必須帶單位**（`"600[s]"`；純數字 `"600"` 會拋錯）
+  - `storeViewFactors`：`"0"` / `"1"`
+  - `failonbackside`：只能 `"0"` / `"1"`（**禁用 `"off"`**，會拋錯）
+- 下列名稱全部 N/A（`InvocationTargetException`，勿再試）：`radiationIterations`、`maxRadIterations`、`viewFactorAlgorithm`、`maxComputationalTime`、`dependDiffuseSurfaceOn`、`constraintMethod`、`maxAllowedIterations`、`discretizationType`。
+- Time solver `t1`（`<SolverFeature op="Time" tag="t1">`）可寫屬性（dmodel.xml 中 `name="p:xxx"`）：`rtol`（FCFC=0.005）、`atolglobalfactor`、`maxorder`（=2）、`complex`（允許複數 on/off）、`estrat`（誤差估測）、`tlist`（一次給足全程 `range(0,0.1,80) range(80,1,120)`）。
+- 讀 dmodel.xml 找屬性：propertyValue 前一行常是中文 `<!-- 註解 -->`，屬性名即 `name="p:xxx"`。
+
+### 帶窗放射度奇異性（本專案最終根因，屬「結構性、無法以數值繞過」）
+- 現象：兩波段 S2S（波段 `[0\, 2.5[um]` 與 `[2.5[um]\, +∞[`）放射度變數 `Ju_band` / `Jd_band` 在暖態 ~85–96 min 成複數。
+- 失敗邊界隨 run 漂移（非固定幾何背面）：`5185.9@16`、`5262.77@16`、`5496.6@24-25,29-31,68`、`5706.3@8,10,32,34,36`。
+- **已逐一排除**的數值手段：步距（0.02–1 min）、容差 rtol、視因子更新 everyIteration vs everyNTime、failonbackside 0/1、網格凍結（t≤4800s）、`complex` on/off、ε 帶窗（急降 1e-4 與平滑斜坡 `flc2hs(t-5040[s],300/40)` 全在窗入口或 ε 開始變 1% 即翻複數）。
+- 成因分析：暖態高溫使放射度耦合矩陣 `(1-ε)F` 譜半徑逼近 1 → 系統跨越奇異點 → 無實數解。**任何 ε→0 的旁路只會讓矩陣更近奇異**（ε=0 時行和=1 恰奇異），故旁路不可行。
+- 冷啟動（293 K）未碰到奇異點，故 0–80 min 可解且可靠；原始模型自己的 `range(0,0.1,120)` 一樣過不了帶（原檔本就無暖態全段解）。
+- 唯一出路：在 COMSOL GUI 改物理設定（例：改單頻帶灰體、檢修 DiffuseSurface from_mat 發射率、調整 SpectralBand 結構）後再重跑——**數值/求解器設定無法解決**。
+
+### 收尾實務
+- CSV 驗證格式：`t[s],t[min],Tprobe[K],avgTfield[K],minTfield[K],maxTfield[K]`（801 步）；FCFC 參考值 `avh1@4800 s ≈ 2571 K`。
+- PowerShell 注意：`\uXXXX` 轉義**不被 PowerShell 解讀**，含中文之路徑請用萬用字元（如 `D:\10-*\Comsol\`）或以 `[char]0x..` 組字。
 
 ## Environment gotchas
 
