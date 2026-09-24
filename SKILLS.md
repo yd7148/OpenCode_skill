@@ -3,6 +3,8 @@
 本文件詳細說明本收藏庫中每支 OpenCode Skill 的功能、適用時機、運作流程與產出。
 所有 skill 皆為 **MIT 授權**，適用於 **opencode agents**，作業系統為 **Windows（PowerShell 5.1）**。
 
+> ⚠️ **已移除 Skill（預設不安裝）**：`hcl-notes-forward`（HCL Notes 公布函自動轉寄，需本機 HCL Notes client + GDI 截圖/OCR 自動化）已於 2026-09 自本收藏庫移除。此 skill 預設不安裝，需要者請自 GitHub 歷史 commit 取回，不隨收藏庫預設部署。
+
 ---
 
 ## 目錄
@@ -16,29 +18,29 @@
 | [cv-job-application](#5-cv-job-application) | Use when 投遞或填寫 中華電信/台積電 線上履歷、要操作 rmis.ch |
 | [dwg-to-dxf](#6-dwg-to-dxf) | Convert AutoCAD DWG files to DXF format  |
 | [github-skill-sync](#7-github-skill-sync) | 同步本機 OpenCode skills（~/.config/opencode/ |
-| [hcl-notes-forward](#8-hcl-notes-forward) | 自動化 HCL Notes（本機 Windows client）的「公布函系統通 |
-| [md-to-pdf](#9-md-to-pdf) | 將繁體中文 Markdown 說明檔渲染成排版精美的 A4 多頁 PDF（標題、 |
-| [meeting-transcript-summary](#10-meeting-transcript-summary) | 將一場會議的「原始時間戳逐字稿」（*_timestamp.txt，語音辨識輸出） |
-| [open-computer-use](#11-open-computer-use) | Platform-neutral guidance for using Open |
-| [pdf-exam-extractor](#12-pdf-exam-extractor) | Use when the user asks to extract indivi |
-| [pdf-reader](#13-pdf-reader) | 讀取 PDF 檔案的內容並輸出成 Markdown 摘要報告。文字型 PDF 用 |
-| [sd-webui-vae-fix](#14-sd-webui-vae-fix) | 修復 AUTOMATIC1111 Stable Diffusion WebUI（ |
-| [taipower-exam-solver](#15-taipower-exam-solver) | Use when the user asks to process 國營事業招考 |
-| [takeout-exif-merge](#16-takeout-exif-merge) | Use when the user asks to merge Google P |
-| [taobao-cost-fill](#17-taobao-cost-fill) | 將「淘寶費用計算明細」Excel（*-taobao-淘寶-R0.xlsx）依訂單 |
-| [taobao-order-extract](#18-taobao-order-extract) | 從淘寶導出的「訂單數據.xlsx」Excel 檔案提取訂單資料（商品名稱、實付金 |
-| [tts](#19-tts) | 使用 Microsoft Edge 的 edge-tts 將文字轉成高品質語音（ |
-| [v2t-report-summary](#20-v2t-report-summary) | Summarize a per-minute video-analysis re |
-| [video-2x-speed](#21-video-2x-speed) | Convert a recorded video to 200% playbac |
-| [video-class-pipeline](#22-video-class-pipeline) | Use when the user asks to analyze/proces |
-| [video2text](#23-video2text) | Analyze recorded meeting / online-confer |
-| [web-tools](#24-web-tools) | 紀錄本機 web 工具環境（Crawl4AI 爬蟲、Webwright 瀏覽器  |
-| [webwright](#25-webwright) | Solve a user-specified web task code-as- |
-| [yt-batch-download](#26-yt-batch-download) | 批次下載 YouTube 影片（1080p 最高畫質），支援自訂檔名、cooki |
-| [yt-upload](#27-yt-upload) | 透過 Playwright 操作 YouTube Studio，將本機影片上傳並 |
-| [mate-engine-anim-patch](#28-mate-engine-anim-patch) | 擴充已編譯 Unity 的 Mate Engine X 動作數量（改寫 DLL 內 |
-| [browser-control](#29-browser-control) | Drive the user's existing Chromium-family browser with determin |
-| [taipower-exam-report](#30-taipower-exam-report) | 台電/國營事業考題整份詳細解答（VLM 元件抽取 + SPICE + 官方答案） |
+| [md-to-pdf](#8-md-to-pdf) | 將繁體中文 Markdown 說明檔渲染成排版精美的 A4 多頁 PDF（標題、 |
+| [meeting-transcript-summary](#9-meeting-transcript-summary) | 將一場會議的「原始時間戳逐字稿」（*_timestamp.txt，語音辨識輸出） |
+| [open-computer-use](#10-open-computer-use) | Platform-neutral guidance for using Open |
+| [pdf-exam-extractor](#11-pdf-exam-extractor) | Use when the user asks to extract indivi |
+| [pdf-reader](#12-pdf-reader) | 讀取 PDF 檔案的內容並輸出成 Markdown 摘要報告。文字型 PDF 用 |
+| [sd-webui-vae-fix](#13-sd-webui-vae-fix) | 修復 AUTOMATIC1111 Stable Diffusion WebUI（ |
+| [taipower-exam-solver](#14-taipower-exam-solver) | Use when the user asks to process 國營事業招考 |
+| [takeout-exif-merge](#15-takeout-exif-merge) | Use when the user asks to merge Google P |
+| [taobao-cost-fill](#16-taobao-cost-fill) | 將「淘寶費用計算明細」Excel（*-taobao-淘寶-R0.xlsx）依訂單 |
+| [taobao-order-extract](#17-taobao-order-extract) | 從淘寶導出的「訂單數據.xlsx」Excel 檔案提取訂單資料（商品名稱、實付金 |
+| [tts](#18-tts) | 使用 Microsoft Edge 的 edge-tts 將文字轉成高品質語音（ |
+| [v2t-report-summary](#19-v2t-report-summary) | Summarize a per-minute video-analysis re |
+| [video-2x-speed](#20-video-2x-speed) | Convert a recorded video to 200% playbac |
+| [video-class-pipeline](#21-video-class-pipeline) | Use when the user asks to analyze/proces |
+| [video2text](#22-video2text) | Analyze recorded meeting / online-confer |
+| [web-tools](#23-web-tools) | 紀錄本機 web 工具環境（Crawl4AI 爬蟲、Webwright 瀏覽器  |
+| [webwright](#24-webwright) | Solve a user-specified web task code-as- |
+| [yt-batch-download](#25-yt-batch-download) | 批次下載 YouTube 影片（1080p 最高畫質），支援自訂檔名、cooki |
+| [yt-upload](#26-yt-upload) | 透過 Playwright 操作 YouTube Studio，將本機影片上傳並 |
+| [mate-engine-anim-patch](#27-mate-engine-anim-patch) | 擴充已編譯 Unity 的 Mate Engine X 動作數量（改寫 DLL 內 |
+| [browser-control](#28-browser-control) | Drive the user's existing Chromium-family browser with determin |
+| [taipower-exam-report](#29-taipower-exam-report) | 台電/國營事業考題整份詳細解答（VLM 元件抽取 + SPICE + 官方答案） |
+| [mate-engine](#30-mate-engine) | Mate Engine（免費輕量桌面寵物）資訊與檔案下載（https://github.com/shinyflvre/Mate-Engine） |
 
 ---
 
@@ -155,23 +157,7 @@
 
 ---
 
-## 8. hcl-notes-forward
-
-**名稱**：hcl-notes-forward — HCL Notes 公布函直接轉寄自動化
-
-**用途**：自動化 HCL Notes（本機 Windows client）的「公布函系統通知」未讀郵件批次處理：將信箱依寄件者($BySender)視圖中「公布函系統通知」群組的未讀信件，逐封以「直接轉寄」寄給指定群組（如「工三碳化矽專案組-03-全組(21)」），寄完刪除原信。全程用 GDI 全螢幕截圖 + OCR（RapidOCR）+ SetCursorPos/mouse_event 螢幕絕對座標點擊。當你被要求「轉寄公布函」「批次處理 Notes 未讀通知」「直接轉寄給群組」、或收到一份 HCL Notes 公布函批次作業時使用。Use when asked to 轉發 Notes 公布函、處理未讀通知、direct-forward Notes mail to a group.
-
-**摘要**：
-- - 使用者要求把 Notes 信箱中的「公布函系統通知」未讀信，用「直接轉寄」寄給某個通訊錄群組。
-- - 要批次處理多封未讀公布函，並在寄出後刪除原信。
-- - 使用者明確表示這類公布函「直接轉寄」**不留已傳送副本**，故無法用已傳送驗證，只能靠收件群組端或使用者確認。
-- | 項目 | 值 |
-- |------|-----|
-- | Notes client | HCL Notes 9-11（本案例 11.0.1FP5），`C:\lotus\Notes\nlnotes.exe` |
-
----
-
-## 9. md-to-pdf
+## 8. md-to-pdf
 
 **名稱**：md-to-pdf — 繁中 Markdown → A4 PDF（離線 Pillow 渲染）
 
@@ -187,7 +173,7 @@
 
 ---
 
-## 10. meeting-transcript-summary
+## 9. meeting-transcript-summary
 
 **名稱**：meeting-transcript-summary — 原始時間戳會議逐字稿 → 詳盡繁中會議彙總
 
@@ -203,7 +189,7 @@
 
 ---
 
-## 11. open-computer-use
+## 10. open-computer-use
 
 **名稱**：Open Computer Use
 
@@ -219,7 +205,7 @@
 
 ---
 
-## 12. pdf-exam-extractor
+## 11. pdf-exam-extractor
 
 **名稱**：PDF Exam Extractor (考題PDF擷取與OCR)
 
@@ -235,7 +221,7 @@
 
 ---
 
-## 13. pdf-reader
+## 12. pdf-reader
 
 **名稱**：pdf-reader — 讀取 PDF 內容並輸出 Markdown 摘要
 
@@ -251,7 +237,7 @@
 
 ---
 
-## 14. sd-webui-vae-fix
+## 13. sd-webui-vae-fix
 
 **名稱**：sd-webui-vae-fix — A1111 檢查點／VAE 切換失敗修復
 
@@ -267,7 +253,7 @@
 
 ---
 
-## 15. taipower-exam-solver
+## 14. taipower-exam-solver
 
 **名稱**：Taipower Exam Solver
 
@@ -283,7 +269,7 @@
 
 ---
 
-## 16. takeout-exif-merge
+## 15. takeout-exif-merge
 
 **名稱**：Google Photos Takeout EXIF Merge
 
@@ -299,7 +285,7 @@
 
 ---
 
-## 17. taobao-cost-fill
+## 16. taobao-cost-fill
 
 **名稱**：taobao-cost-fill — 淘寶費用計算明細填寫
 
@@ -315,7 +301,7 @@
 
 ---
 
-## 18. taobao-order-extract
+## 17. taobao-order-extract
 
 **名稱**：淘寶訂單資料提取與整理
 
@@ -331,7 +317,7 @@
 
 ---
 
-## 19. tts
+## 18. tts
 
 **名稱**：tts — 文字轉語音（edge-tts）
 
@@ -347,7 +333,7 @@
 
 ---
 
-## 20. v2t-report-summary
+## 19. v2t-report-summary
 
 **名稱**：v2t-report-summary — 逐分鐘報告 → 重點彙總 ver2
 
@@ -363,7 +349,7 @@
 
 ---
 
-## 21. video-2x-speed
+## 20. video-2x-speed
 
 **名稱**：video-2x-speed — 影片加速（ffmpeg 200% 速度轉檔）
 
@@ -379,7 +365,7 @@
 
 ---
 
-## 22. video-class-pipeline
+## 21. video-class-pipeline
 
 **名稱**：Video Class Pipeline (課程影片分析與轉檔)
 
@@ -395,7 +381,7 @@
 
 ---
 
-## 23. video2text
+## 22. video2text
 
 **名稱**：video2text — 影片分析（畫面 OCR × 語音 Whisper → Markdown + PDF）
 
@@ -411,7 +397,7 @@
 
 ---
 
-## 24. web-tools
+## 23. web-tools
 
 **名稱**：web-tools — 本機網頁工具環境
 
@@ -427,7 +413,7 @@
 
 ---
 
-## 25. webwright
+## 24. webwright
 
 **名稱**：Webwright (Claude Code adaptation)
 
@@ -443,7 +429,7 @@
 
 ---
 
-## 26. yt-batch-download
+## 25. yt-batch-download
 
 **名稱**：yt-batch-download — YouTube 批次下載（1080p）
 
@@ -459,7 +445,7 @@
 
 ---
 
-## 27. yt-upload
+## 26. yt-upload
 
 **名稱**：yt-upload — YouTube 影片上傳並公開發布
 
@@ -475,7 +461,7 @@
 
 ---
 
-## 28. mate-engine-anim-patch
+## 27. mate-engine-anim-patch
 
 **名稱**：mate-engine-anim-patch — Mate Engine X（已編譯 Unity）動作數量擴充
 
@@ -500,7 +486,7 @@ patch MateEngine 動畫計數 / mate engine anim patch。
 
 ---
 
-## 29. browser-control
+## 28. browser-control
 
 **名稱**：browser-control — 瀏覽器自動化驅動（確定性 Playwright）
 
@@ -515,7 +501,7 @@ patch MateEngine 動畫計數 / mate engine anim patch。
 
 ---
 
-## 30. taipower-exam-report
+## 29. taipower-exam-report
 
 **名稱**：taipower-exam-report — 台電/國營事業考題整份詳細解答
 
@@ -527,5 +513,25 @@ patch MateEngine 動畫計數 / mate engine anim patch。
 - 113 舊 `完整解答.md` 有 9 題答案標頭錯誤（Q3/Q4/Q11/Q21/Q22/Q24/Q28/Q33/Q34）；權威來源一律是官方解答 PDF（`answers_113.json`）。
 - 環境陷阱：PySpice 需 `os.add_dll_directory('C:\ngspice\Spice64_dll\dll-vs')`；**永不**直接 `ngspice -b`（~60s 後 hang），一律走 PySpice `circuit.simulator()`；先 import torch 再 import HF/PySpice；輸出 stdout 轉 utf-8。
 - 已知限制：VLM 拓樸判讀不穩 → 多數題落 REVIEW/NO-CIRCUIT 屬設計；尚未實作 BJT/zener/AC phasor 模型。
+
+---
+
+## 30. mate-engine
+
+**名稱**：mate-engine — Mate Engine（免費輕量桌面寵物）資訊與檔案下載
+
+**用途**：Mate Engine（伙伴引擎）是一款**免費、輕量、開源**的 Windows 桌面寵物（Desktop Pet）軟體，是 **Desktop Mate 的免費替代品**：不綁商業角色模型、支援**自訂 VRM 角色**、可模組化（Mod）、開源（GNU AGPL v3 + MateProv2 License），且比 Desktop Mate **更省資源**。Use when asked to 下載 Mate Engine、Mate Engine 檔案、桌寵、桌面寵物、desktop pet、Desktop Mate 替代、MateEngine 下載、VRM 角色桌面寵物、mate engine download，or to find where to download Mate Engine / how to install and run it。
+
+**檔案來源（本 skill 唯一指定）**：
+- 官方 GitHub：https://github.com/shinyflvre/Mate-Engine
+- 下載方式：該 repo 右側 **Releases** → 下載最新**公開發行版 ZIP**（非 source code）→ 解壓 → 執行 `MateEngineX.exe`。
+- Steam 板（特殊內容 / 自動更新 / Workshop）：https://store.steampowered.com/app/3625270/MateEngine/（GitHub 版終身免費）。
+
+**摘要**：
+- 操作：執行 `MateEngineX.exe` 後，對桌寵點**右鍵**或按 `M` 開啟選單（FPS、最前面顯示、迷你模式等）。
+- 授權：App 為 GNU AGPL v3 + MateProv2；內建角色版權屬 Yorshka Shop，不得在自建 Build 重新散佈。
+- 防毒誤報：Windows Defender 可能誤報 `Trojan:Script/Wacatac.B1ml`（未數位簽章所致），可掃 VirusTotal 驗證後執行。
+- 免費 VRM：初音ミク VRM https://booth.pm/en/items/3226395；Linux 非官方移植版 https://github.com/Marksonthegamer/Mate-Engine-Linux-Port。
+- 相關 skill：`mate-engine-anim-patch`（擴充已編譯 Mate Engine X 的 Idle/Dance 動畫輪播數量；本 skill 下載後取得 `Assembly-CSharp.dll` 即可套用）。
 
 ---

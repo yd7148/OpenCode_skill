@@ -31,11 +31,11 @@ OpenCode 本機 Skills 收藏庫。所有 skill 皆為 MIT 授權，適用於 op
 | `comsol-mcp` | 透過 opencode 操作 COMSOL 6.4（啟動規則、建模→求解→評估序列與 API 陷阱） | Python venv（mph + jpype1）+ COMSOL MCP server（Windows） |
 | `comsol-linsolver-benchmark` | COMSOL 線性求解器 A/B 基準測試（MUMPS vs cuDSS vs PARDISO）：改 `.mph` 內嵌 `dmodel.xml` 求解器節點 + comsolbatch 固定預算求解 + nvidia-smi GPU 監控 | Python（zipfile）+ COMSOL 6.4 comsolbatch（Windows） |
 | `comsol-gpu-env` | COMSOL 6.4 GPU/系統 CUDA 環境設定與驗證（RTX 5080 Blackwell，切換系統 CUDA 12.9.1、comsol.prefs、Computer Use GUI 操作與無 GUI 驗證） | COMSOL 6.4 + 系統 CUDA 12.9.1（Windows）；GUI 操作用 opencode Computer Use |
-| `hcl-notes-forward` | HCL Notes 公布函「直接轉寄」給群組（UI 自動化：GDI 截圖 + RapidOCR + 座標點擊） | Windows：HCL Notes client + RapidOCR venv |
 | `cv-job-application` | 中華電信／台積電線上履歷自動投遞（rmis.cht.com.tw 報名表填寫、附件上傳、狀態檢核、沿用保存的 Chrome 登入） | Playwright CDP + ddddocr + EasyOCR + pymupdf + fpdf2 + python-pptx（Windows） |
 | `meeting-transcript-summary` | 原始時間戳會議逐字稿彙總成詳盡繁中主管會議紀錄 | 無（opencode 內建工具） |
 | `pdf-reader` | 讀取 PDF（文字抽取 / 掃描 OCR）輸出繁中 Markdown 摘要 | Python venv：PyMuPDF、RapidOCR、opencc |
 | `mate-engine-anim-patch` | 擴充已編譯 Unity 的 Mate Engine X 動作數量（改寫 DLL 中 Idle/Dance 輪播常數，讓 BlendTree 全部動畫啟用） | Python（dnfile/dncil + UnityPy）+ Mono.Cecil + 內建 csc（Windows） |
+| `mate-engine` | Mate Engine（免費輕量桌面寵物 / Desktop Mate 替代品）資訊與檔案下載（唯一來源：https://github.com/shinyflvre/Mate-Engine） | 無（下載 GitHub Release ZIP 後執行 `MateEngineX.exe`） |
 | `browser-control` | Drive 使用者既有的 Chromium 瀏覽器（確定性 Playwright：inspect/act/verify、handoff 2FA/CAPTCHA、錄影、驗證過的 network capture） | `browser-control` CLI / MCP server |
 | `taipower-exam-report` | 國營事業/台電考題整份詳細解答（VLM 元件抽取 + SPICE 模擬 + 官方答案比對） | Python venv：Qwen2.5-VL（CUDA）+ ngspice/PySpice（Windows） |
 
@@ -53,11 +53,13 @@ python3 -m venv .venv
 
 > 註：repo 內容同時適用 Windows（PowerShell 5.1，`py` launcher）與 macOS。`md-to-pdf` 已內建中文字體自動偵測，macOS 使用 STHeiti、Windows 使用微軟正黑體（msjh.ttc）。
 
+> ⚠️ 已移除 Skill：**`hcl-notes-forward`**（HCL Notes 公布函自動轉寄，需本機 HCL Notes client + 截圖/OCR 自動化，2026-09 移除）— 此 skill 本機**預設不安裝**；需要者請自 GitHub 歷史 commit 取回，不隨本收藏庫預設部署。
+
 ## 依賴／平台總覽
 
-- **無依賴**：`comsol-analyzer`、`v2t-report-summary`、`meeting-transcript-summary`
+- **無依賴**：`comsol-analyzer`、`v2t-report-summary`、`meeting-transcript-summary`、`mate-engine`
 - **純 Python（跨平台）**：`taobao-order-extract`（openpyxl）、`taobao-cost-fill`（openpyxl）、`md-to-pdf`（Pillow）、`tts`（edge-tts）、`taipower-exam-solver`（pymupdf）、`pdf-reader`（PyMuPDF + RapidOCR + opencc）
-- **需額外系統工具**：`dwg-to-dxf`（ODA Converter）、`video-2x-speed`（ffmpeg）、`yt-batch-download`（ffmpeg + deno）、`yt-upload`（Playwright）、`takeout-exif-merge`（ExifTool）、`hcl-notes-forward`（HCL Notes client + RapidOCR，Windows）
+- **需額外系統工具**：`dwg-to-dxf`（ODA Converter）、`video-2x-speed`（ffmpeg）、`yt-batch-download`（ffmpeg + deno）、`yt-upload`（Playwright）、`takeout-exif-merge`（ExifTool）
 - **需 COMSOL 環境**：`comsol-mcp`（本機 COMSOL 6.4 + COMSOL MCP server，Windows）、`comsol-linsolver-benchmark`（COMSOL 6.4 comsolbatch + nvidia-smi，Windows）、`comsol-gpu-env`（COMSOL 6.4 + 系統 CUDA 12.9.1，RTX 5080；GUI 操作用 opencode Computer Use）
 - **重型機器學習（每個 skill 有專用 venv）**：`video2text`、`pdf-exam-extractor`、`video-class-pipeline`、`taipower-exam-report`
 - **需 WebUI 環境**：`sd-webui-vae-fix`（用 webui 內建 Python：torch + safetensors，抽取本機大檢查點的 VAE 並以 `/sdapi/v1` API 驗證）
