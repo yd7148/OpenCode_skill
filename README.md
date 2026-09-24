@@ -68,18 +68,12 @@ python3 -m venv .venv
 - **瀏覽器自動化**：`browser-control`（browser-control CLI / MCP，驅動使用者既有的 Chromium 瀏覽器，支援 handoff、錄影與 network capture）
 - **已編譯 Unity 修改**：`mate-engine-anim-patch`（以 dnfile/dncil 反組譯 + UnityPy 驗證 BlendTree，Mono.Cecil 重寫 IL 常數，Windows）
 
-## OpenCode 本機環境設定（LSP 精準開啟）
+## OpenCode 本機環境設定
 
-本收藏庫對應的 opencode 環境（Desktop App）已啟用 **LSP 方案 2（精準開啟）**，
-僅啟用 `typescript`、`pyright`、`yaml-ls`、`bash` 四個語言伺服器，並以使用者環境變數
-`OPENCODE_EXPERIMENTAL_LSP_TOOL=true` 開啟 `lsp` 工具（定義跳轉／找參考／診斷回饋）。
+本收藏庫對應的 opencode 環境（Desktop App）已做以下設定：
 
-設定摘錄（`~/.config/opencode/opencode.jsonc`）：
+1. **LSP 精準開啟（方案 2）** — `opencode.jsonc` 啟用 `typescript`、`pyright`、`yaml-ls`、`bash` 四個語言伺服器；以使用者環境變數 `OPENCODE_EXPERIMENTAL_LSP_TOOL=true` 開啟 `lsp` 工具（定義跳轉／找參考／診斷回饋）。安裝：`npm i -g pyright`；TS 專案需各自 `npm i -D typescript`。
+2. **TUI 外掛 oc-plugin-rainbow** — `tui.json` 啟用彩虹特效，套件已裝進 `~/.cache/opencode/node_modules`（v0.1.1）。微調：`Ctrl+P → Rainbow settings`。
+3. **瀏覽器 MCP 固定 profile** — Playwright MCP 指定 `--user-data-dir=~/.cache/opencode-browser-profiles/playwright`，所有專案共用登入（解決「空帳號／未登入」）；chrome-devtools 維持 `--autoConnect` 沿用日常 Chrome 登入。
 
-```jsonc
-"lsp": { "typescript": {}, "pyright": {}, "yaml-ls": {}, "bash": {} }
-```
-
-- 安裝：`npm i -g pyright`；TS/JS 專案需各自 `npm i -D typescript`
-- 生效：修改後**完全重啟** OpenCode
-- 詳細說明與其他選項：見 **[SKILLS.md 附錄](SKILLS.md)**（OpenCode 本機環境設定（LSP））
+> 三項修改後皆需**完全重啟** OpenCode。詳細設定、選項與驗證方式：見 **[SKILLS.md 附錄](SKILLS.md)**。

@@ -536,21 +536,28 @@ patch MateEngine 動畫計數 / mate engine anim patch。
 
 ---
 
-## 附錄：OpenCode 本機環境設定（LSP）
+## 附錄：OpenCode 本機環境設定
 
-本機 OpenCode（Desktop App 1.18.x）已啟用 **LSP 精準開啟（方案 2）**：僅啟用
-`typescript`、`pyright`、`yaml-ls`、`bash` 四個語言伺服器。啟用後 agent 可獲得
-**`lsp` 工具**（goToDefinition、findReferences、hover、documentSymbol、workspaceSymbol、
-goToImplementation、callHierarchy…）與**語言伺服器診斷回饋**（診斷訊息自動流入 agent loop）。
+本機 OpenCode Desktop App 環境設定總覽：**LSP（方案 2 精準開啟）**、**TUI 外掛（oc-plugin-rainbow）**、
+**瀏覽器 MCP 固定 profile**。三項修改後皆需**完全重啟** OpenCode 才生效。
 
-### 啟用開關（兩個都要）
+---
+
+### LSP（精準開啟 方案 2）
+
+本機已啟用 **LSP 精準開啟（方案 2）**：僅啟用 `typescript`、`pyright`、`yaml-ls`、`bash`
+四個語言伺服器。啟用後 agent 可獲得 **`lsp` 工具**（goToDefinition、findReferences、hover、
+documentSymbol、workspaceSymbol、goToImplementation、callHierarchy…）與**語言伺服器診斷回饋**
+（診斷訊息自動流入 agent loop）。
+
+#### 啟用開關（兩個都要）
 
 | 開關 | 設定 | 位置 |
 |------|------|------|
 | ① `lsp` 工具 | 使用者層級環境變數 `OPENCODE_EXPERIMENTAL_LSP_TOOL=true`（或 `OPENCODE_EXPERIMENTAL=true`） | 系統內容 → 環境變數 |
 | ② LSP server | `"lsp": { ... }`（見下） | `~/.config/opencode/opencode.jsonc` |
 
-### 設定內容（方案 2：精準開啟）
+#### 設定內容
 
 ```jsonc
 {
@@ -573,7 +580,7 @@ OpenCode 在**讀到對應副檔名的檔案**且**必要條件滿足**時才啟
 | yaml-ls | .yaml/.yml | 自動下載 yaml-language-server | ✅ 自動下載 |
 | bash | .sh/.bash/.zsh/.ksh | 自動下載 bash-language-server | ✅ 自動下載 |
 
-### 安裝／維護
+#### 安裝／維護
 
 ```bash
 npm i -g pyright                                     # pyright（本機已安裝）
@@ -582,7 +589,7 @@ cd <某個 TS/JS 專案> && npm i -D typescript          # typescript LSP 吃「
 
 改完 `opencode.jsonc` 或環境變數後，需**完全重啟** OpenCode Desktop App 才生效。
 
-### 其他設定選項（參考）
+#### 其他設定選項（參考）
 
 - `"lsp": true` → 全開（所有內建 server）
 - `"lsp": false` → 全關（預設值）
@@ -593,3 +600,76 @@ cd <某個 TS/JS 專案> && npm i -D typescript          # typescript LSP 吃「
 > gopls / rust / lua-ls / ruby-lsp / php intelephense / clangd 等對應工具鏈未安裝，用不到就不自動下載，
 > 避免浪費記憶體與啟動時間（官方 Best Practices 建議不要無腦全開）。
 > `.ps1`（PowerShell）與 `.md` 目前沒有對應內建 LSP。
+
+---
+
+### TUI 外掛：oc-plugin-rainbow（彩虹特效）
+
+TUI 外掛 oc-plugin-rainbow 為 OpenCode 終端介面加入**主題感知彩虹後製**：中性文字前景動畫色帶
++ 可選背景色調 + 內建設定對話框。需 OpenCode `>=1.3.14`。
+
+設定檔：`~/.config/opencode/tui.json`
+
+```jsonc
+{
+  "$schema": "https://opencode.ai/tui.json",
+  "plugin": [
+    ["oc-plugin-rainbow", { "enabled": true, "fg": true, "bg": true, "speed": 0.008, "turns": 3, "glow": 0.05 }]
+  ]
+}
+```
+
+常用選項：`enabled`（總開關）、`fg` / `bg`（文字／背景動畫）、`speed`（0–0.03）、`turns`（0.25–8）、
+`glow`（0–0.15）、`keybinds.logo_splash`（預設 `ctrl+shift+r`，觸發白閃 logo 畫面）。
+
+**安裝方式（本機已裝，v0.1.1）**，三選一：
+
+```bash
+opencode plugin oc-plugin-rainbow                             # CLI 安裝（官方方式）
+npm install --prefix ~/.cache/opencode oc-plugin-rainbow@0.1.1 # 直接裝進 TUI 外掛快取（本機用此法）
+```
+
+或 TUI 內 `Ctrl+P → Install Plugin` 互動安裝。
+
+微調：對話框輸入 `/rainbow-settings`（或 `Ctrl+P → Rainbow settings`）即時調整，設定存本機。
+
+---
+
+### 瀏覽器 MCP 固定 profile（跨專案共用登入）
+
+Playwright MCP 預設按「工作區 hash」建立 profile
+（`%USERPROFILE%\AppData\Local\ms-playwright\mcp-{channel}-{workspace-hash}`），
+**不同專案 = 不同 profile = 每次都是未登入／空帳號**。解法：指定固定 `--user-data-dir`。
+
+`~/.config/opencode/opencode.jsonc`：
+
+```jsonc
+"mcp": {
+  "playwright": {
+    "type": "local",
+    "command": ["npx", "-y", "@playwright/mcp@latest", "--user-data-dir=C:\\Users\\N000149839\\.cache\\opencode-browser-profiles\\playwright"],
+    "enabled": true
+  },
+  "chrome-devtools": {
+    "type": "local",
+    "command": ["npx", "-y", "chrome-devtools-mcp@latest", "--autoConnect"],
+    "enabled": true
+  }
+}
+```
+
+- **Playwright MCP** → 固定 profile `~/.cache/opencode-browser-profiles/playwright`，**所有專案共用同一份登入狀態**。
+- **chrome-devtools MCP** → 維持 `--autoConnect`：自動連到使用者正在執行的 Chrome 預設 profile，
+  直接沿用日常 Chrome 的登入（需 Chrome 144+，且已於 `chrome://inspect/#remote-debugging` 啟用遠端除錯）。
+- ⚠️ **兩個 MCP 不可共用同一個 profile 目錄**（Chrome profile 一次只能被一個實例鎖定）；
+  需多開並行 MCP 客戶端時，Playwright 各自指定不同 `--user-data-dir` 或加 `--isolated`。
+
+---
+
+### 生效與驗證
+
+改完設定都要**完全重啟** OpenCode Desktop App：
+
+- LSP：agent 出現 `lsp` 工具、診斷回饋流入對話
+- Rainbow：`Ctrl+P → Rainbow settings`、`Ctrl+Shift+R`（logo flash）
+- Playwright profile：登入任一網站 → 換到另一專案 → 仍保持登入
