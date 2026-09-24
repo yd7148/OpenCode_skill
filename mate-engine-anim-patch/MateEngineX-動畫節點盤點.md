@@ -3,6 +3,16 @@
 > 來源：`MateEngineX_Data/sharedassets0.assets`；主 Animator：pathid 554。
 > 本報告只盤點，不修改遊戲檔案。
 
+## 2026-09-24 最終啟用狀態
+
+- `totalIdleAnimations = 19`：女性 PET 的 19 個待機 AnimationClip 全部啟用。
+- `DANCE_CLIP_COUNT = 13`：13 個 PET 舞蹈全部啟用。
+- `IDLE_SWITCH_TIME = 6`：待機動作每 6 秒依序切換一次。
+- 19 個待機動作完整輪播約需 114 秒（1 分 54 秒）。
+- `IDLE_TRANSITION_TIME = 3`：切換時保留 3 秒平滑過場。
+- 修改檔案：`MateEngineX_Data/Managed/Assembly-CSharp.dll`。
+- 12 秒版本備份：`MateEngineX_Data/Managed/Assembly-CSharp.dll.bak-idle12s`。
+
 ## 摘要
 
 - AnimationClip：82 支
