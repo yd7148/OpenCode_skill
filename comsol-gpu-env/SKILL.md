@@ -1,6 +1,6 @@
 ---
 name: comsol-gpu-env
-description: COMSOL Multiphysics 6.4 的 GPU/系統 CUDA 環境設定與驗證（RTX 5080 Blackwell）。涵蓋切換到系統 CUDA 12.9.1 的版本限制（官方僅支援至 CUDA 12、cuDSS 0.7.1 只能用 bundled）、comsol.prefs 關鍵參數、以 opencode Computer Use 操作 COMSOL「偏好設定→計算中→GPU 加速」GUI 的 a11y 心得（tree item 用 app_post、對話框按 Return、element index 重開即重置、checkbox 狀態不可見），以及 nvidia-smi/deviceQuery129/bandwidthTest/rtcheck 無 GUI 驗證法與產生 Phase15 報告。Use when asked to "切換 COMSOL CUDA", "COMSOL GPU 加速", "驗證 CUDA 安裝", "cuDSS", "RTX 5080", "COMSOL 計算中 GPU 設定", or to setup/verify COMSOL GPU acceleration environment.
+description: COMSOL Multiphysics 6.4 的 GPU/系統 CUDA 環境設定與驗證（RTX 5080 Blackwell）。涵蓋切換到系統 CUDA 12.9.1 的版本限制（官方僅支援至 CUDA 12、cuDSS 0.7.1 只能用 bundled）、comsol.prefs 關鍵參數、以 opencode Computer Use 操作 COMSOL「偏好設定→計算中→GPU 加速」GUI 的 a11y 心得（tree item 用 app_post、對話框按 Return、element index 重開即重置、checkbox 狀態不可見）、nvidia-smi/deviceQuery129/bandwidthTest/rtcheck 無 GUI 驗證法與產生 Phase15 報告，以及顯示/視窗維修（不要加 AppCompat DPI/GPU flags、視窗最小化導致「看不見」的判斷與 SW_RESTORE、開模型空白 RendererEventHandlingThread 例外）、徹底解除安裝與 E 槽重裝建議。Use when asked to "切換 COMSOL CUDA", "COMSOL GPU 加速", "驗證 CUDA 安裝", "cuDSS", "RTX 5080", "COMSOL 計算中 GPU 設定", "COMSOL 看不見", "COMSOL 視窗最小化", "COMSOL DPI", "解除安裝 COMSOL", "重裝 COMSOL", or to setup/verify COMSOL GPU acceleration environment.
 license: MIT
 compatibility: opencode
 metadata:
@@ -21,7 +21,7 @@ Do **not** use this skill to build models via MCP（`comsol-mcp`）或分析 `.m
 
 | 項目 | 值 |
 |------|-----|
-| COMSOL | 6.4（`C:\Program Files\COMSOL\COMSOL64\Multiphysics`，Update 1） |
+| COMSOL | 6.4（原 `C:\Program Files\COMSOL\COMSOL64\Multiphysics`；**2026-09-24 已於 C 槽徹底移除**，重裝建議 `E:\COMSOL\COMSOL64\Multiphysics`，Update 1） |
 | 顯示卡 | NVIDIA GeForce RTX 5080，16303 MiB，Compute Capability **12.0**（sm_120） |
 | 驅動程式 | 610.88（**勿更動**） |
 | 系統 CUDA | **12.9.1**（nvcc 12.9 / V12.9.86，`C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.9`）；另有 v12.8 並排安裝（`CUDA_PATH_V12_8`） |
@@ -80,3 +80,39 @@ Do **not** use this skill to build models via MCP（`comsol-mcp`）或分析 `.m
 - 切換後 **重啟 COMSOL** 再驗證，prefs 才生效；重開後偏好設定的「GPU 加速」頁應顯示使用系統 CUDA 工具包 on + CUDA 目錄 v12.9。
 - 若使用者要求維持並排 v12.8：系統已同時安裝 v12.8（`CUDA_PATH_V12_8`），`cudaroot` 指向哪個版本由 prefs 決定，不要改 PATH 全域。
 - RTX 5080 為 Blackwell（CC 12.0）：CUDA < 12.8 一律不原生支援，報錯即以 bundled 12.4 出現 compute capability error。
+
+## 顯示／視窗／解除安裝與重裝（2026-09-24 維修實錄）
+
+硬體分工：**GPU0 = RTX 5080（僅運算，無影像輸出）**；**GPU1 = Intel 內顯（HDMI 輸出，驅動
+32.0.101.8331，OpenGL 4.6）**。系統縮放 175%。
+
+### 看到的症狀與根因
+
+1. **比例錯亂／版面溢出**：原有 AppCompat 旗標 `HIGHDPIAWARE DISABLE_GPU_ACCELERATION`
+   破壞 COMSOL（WPF）在縮放環境的 DPI 處理 → 樹節點寬度 > 容器、視窗縮小。
+2. **「打開了卻看不到」＝主視窗以最小化啟動**：AWT/WPF 主視窗 rect 停於
+   （−32000,−32000）+ `IsIconic=True`，非黑窗也非 crash。判斷法：列舉頂層視窗
+   （`GetWindowRect`/`IsIconic`）或畫素取樣。處置：`ShowWindow(h,9)`（SW_RESTORE）+`ShowWindow(h,3)`（SW_MAXIMIZE）。
+   已存成 `E:\01-Project\2026-09-Comsol-Coil\Fix-ComsolWindow.ps1`（可加 `-Launch` 併啟動）。
+3. **開 .mph 後整窗空白**：`comsolnet*.log`/`comsolnet*_render.log` 出現
+   `Caught Unknown Exception in RendererEventHandlingThread`（renderingthread.cpp:209）+
+   WPF 端 `Create DisconnectGraphicsCommand`。以 `comsol.exe -open <file>` 重測**未複現**
+   （模型約 10 秒載完、無新例外）。OpenGL context 正常建立在 Intel（log 中 `Vendor: Intel`）。
+
+### 注意事項（避免重蹈覆轍）
+
+- **不要**對 `comsol.exe`/`ComsolUI.exe` 加任何 AppCompat Layers（`HIGHDPIAWARE`/`DPIUNAWARE`/
+  `DISABLE_GPU_ACCELERATION`）——是本次顯示問題的根因。
+- 若要保持 RTX 純運算，改在
+  `HKCU\Software\Microsoft\DirectX\UserGpuPreferences` 設（等同「圖形→省電」）：
+  `comsol.exe`/`ComsolUI.exe` = `VideoProcessing=1;Renderer=D3D11;PowerPreference=Integrated`，
+  `comsolxpl.exe` = `GpuPreference=1;`。此設定**只影響顯示，不影響 CUDA 求解**（solver 走
+  `comsolmphserver`，AppCompat/DirectX 層夠不到）。
+
+### 徹底解除安裝（官方路徑，乾淨不用重裝）
+
+- 關閉所有 COMSOL 程序後執行：
+  `"<安裝目錄>\bin\win64\setup.exe" -u true "<安裝目錄>"`（Java 版會開「移除界面」視窗，等待即完成）。
+- 收尾清除：`C:\Program Files\COMSOL`、`C:\Users\<user>\.comsol`（.comsol\v64 含 prefs/log）、
+  `%LOCALAPPDATA%\COMSOL`、Start Menu 捷徑、Uninstall 登錄項目、AppCompat Layers、
+  UserGpuPreferences、`.mph` 關聯（官方 uninstaller 會一併處理大部分）。PATH 通常無項目。
