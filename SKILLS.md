@@ -42,6 +42,7 @@
 | [taipower-exam-report](#29-taipower-exam-report) | 台電/國營事業考題整份詳細解答（VLM 元件抽取 + SPICE + 官方答案） |
 | [mate-engine](#30-mate-engine) | Mate Engine（免費輕量桌面寵物）資訊與檔案下載（https://github.com/shinyflvre/Mate-Engine） |
 | [hcl-notes-forward](#31-hcl-notes-forward) ⚠️預設不安裝 | HCL Notes 公布函自動轉寄＋信箱匯出分析／讀取加密信件（僅限本台專屬電腦） |
+| [opencode-session-auto-name](#32-opencode-session-auto-name) | 讓 opencode session 標題自動以「第一個 prompt 的總結」命名（plugin 已裝全域、0 Token） |
 
 ---
 
@@ -698,6 +699,28 @@ Playwright MCP 預設按「工作區 hash」建立 profile
 - **開信**：先單擊選列確認反白，再 dblclick 或 Enter；避免誤開相鄰列（預覽窗格標題魚目混珠）。
 - **加密信件**：匯出檔不含欄位值；只能 UI 開啟＋OCR 讀數值（數字欄位可靠，中文欄位名易認錯，靠數字+匯出檔交叉驗證）。
 - **雷區**：Ctrl+W/Escape 可能觸發「文件已刪除」對話框；視圖捲動位置每次重排，需重新 OCR 現量列位置；小字(<28px)中文 OCR 幾乎必錯，用 `crop.py ... 4`（LANCZOS 4x）放大改善。
-- 完整流程、陷阱與實測範例見本 skill 的 `SKILL.md`。
-
 ---
+
+## 32. opencode-session-auto-name
+
+**名稱**：opencode-session-auto-name — Session 標題自動命名
+
+**用途**：讓 opencode 的 session 名稱自動取自「第一次使用者 prompt 的總結」或「進行中 todo」，取代泛型 `New session - ...` 標題。
+
+**適用時機**：使用者要求「自動命名 session」、「標題自動取名」、「session 標題總結」、「第一個 prompt 當作標題」、或要設定 opencode 自動命名。
+
+**前置需求**（本機已裝）：
+- plugin `opencode-auto-name` v0.1.3，安裝於 `~/.config/opencode/node_modules/`
+- 全域 `opencode.jsonc` 已加入：
+  `{ "plugin": [["opencode-auto-name", { "template": "{firstMessage}", "maxLength": 50 }]] }`
+
+**摘要**：
+- 監聽 `session.created`/`message.updated`/`todo.updated`/`command.executed`，以樣板計算標題；debounce 10s 避免對話中標題狂跳，每 60s 周期重查。
+- 「總結」為**純規則式**（去開頭贅詞 → 取首句 → 去尾標點 → 超過 maxLength 截斷加 `…`），**0 Token、不需要 LLM、與模型無關**。
+- 樣板變數：`{project}`、`{task}`、`{firstMessage}`、`{messageCount}`、`{model}`、`{date}`、`{time}`；`{a || b}` 表示 a 為空時退回 b。
+- **注意**：原生自動命名（`ensureTitle`，small model 總結第一則訊息）在 `opencode/big-pickle` 供應商下有已知 bug（issue #30662、#7523）會默默失敗，故本機改用此 plugin。
+- 若要「AI 語意總結」而非首句裁剪：替代方案為 `opencode-session-summary`（LLM、長 session 會消耗數萬 Token）或 `opencode-autotitle`（關鍵字 + 自動挑最便宜模型精煉）。
+
+**產出**：每個新 session 的標題 = 第一個 prompt 的首句總結（或進行中 todo）。
+
+- 完整安裝步驟、樣板變數對照、驗證流程與替代方案比較見本 skill 的 `SKILL.md`。

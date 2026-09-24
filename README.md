@@ -20,6 +20,7 @@ OpenCode 本機 Skills 收藏庫。所有 skill 皆為 MIT 授權，適用於 op
 | `yt-upload` | 透過 Playwright 上傳並公開發布 YouTube 影片 | Playwright |
 | `tts` | 用 edge-tts 將文字轉成繁體中文等語音檔（mp3） | Python + `edge-tts` |
 | `github-skill-sync` | 同步本機 skills 與本 GitHub 收藏庫（雙向） | 無（git/rsync/ssh） |
+| `opencode-session-auto-name` | 讓 opencode session 標題自動以「第一個 prompt 的總結」命名（plugin 已裝全域） | 無（純規則式，0 Token） |
 | `webwright` | 瀏覽器 agent（code-as-action，Playwright 開 Firefox） | Python playwright + Firefox（無 API key） |
 | `web-tools` | 本機網頁工具環境筆記（Crawl4AI / Webwright） | 參考用 |
 | `pdf-exam-extractor` | 考題 PDF 逐題裁剪成圖 + EasyOCR 轉 Markdown | Python：pymupdf、pdfplumber、easyocr、opencv-python |
@@ -58,7 +59,7 @@ python3 -m venv .venv
 
 ## 依賴／平台總覽
 
-- **無依賴**：`comsol-analyzer`、`v2t-report-summary`、`meeting-transcript-summary`、`mate-engine`
+- **無依賴**：`comsol-analyzer`、`v2t-report-summary`、`meeting-transcript-summary`、`mate-engine`、`opencode-session-auto-name`
 - **純 Python（跨平台）**：`taobao-order-extract`（openpyxl）、`taobao-cost-fill`（openpyxl）、`md-to-pdf`（Pillow）、`tts`（edge-tts）、`taipower-exam-solver`（pymupdf）、`pdf-reader`（PyMuPDF + RapidOCR + opencc）
 - **需額外系統工具**：`dwg-to-dxf`（ODA Converter）、`video-2x-speed`（ffmpeg）、`yt-batch-download`（ffmpeg + deno）、`yt-upload`（Playwright）、`takeout-exif-merge`（ExifTool）
 - **需 COMSOL 環境**：`comsol-mcp`（本機 COMSOL 6.4 + COMSOL MCP server，Windows）、`comsol-linsolver-benchmark`（COMSOL 6.4 comsolbatch + nvidia-smi，Windows）、`comsol-gpu-env`（COMSOL 6.4 + 系統 CUDA 12.9.1，RTX 5080；GUI 操作用 opencode Computer Use）
@@ -76,5 +77,6 @@ python3 -m venv .venv
 1. **LSP 精準開啟（方案 2）** — `opencode.jsonc` 啟用 `typescript`、`pyright`、`yaml-ls`、`bash` 四個語言伺服器；以使用者環境變數 `OPENCODE_EXPERIMENTAL_LSP_TOOL=true` 開啟 `lsp` 工具（定義跳轉／找參考／診斷回饋）。安裝：`npm i -g pyright`；TS 專案需各自 `npm i -D typescript`。
 2. **TUI 外掛 oc-plugin-rainbow** — `tui.json` 啟用彩虹特效，套件已裝進 `~/.cache/opencode/node_modules`（v0.1.1）。微調：`Ctrl+P → Rainbow settings`。
 3. **瀏覽器 MCP 固定 profile** — Playwright MCP 指定 `--user-data-dir=~/.cache/opencode-browser-profiles/playwright`，所有專案共用登入（解決「空帳號／未登入」）；chrome-devtools 維持 `--autoConnect` 沿用日常 Chrome 登入。
+4. **Session 標題自動命名（opencode-auto-name）** — `opencode.jsonc` 加入 plugin 陣列 `["opencode-auto-name", { "template": "{firstMessage}", "maxLength": 50 }]`，新 session 標題自動取第一個 prompt 的首句總結；純規則式、0 Token。原理與替代方案比較見 skill `opencode-session-auto-name`。
 
 > 三項修改後皆需**完全重啟** OpenCode。詳細設定、選項與驗證方式：見 **[SKILLS.md 附錄](SKILLS.md)**。
