@@ -38,6 +38,7 @@ OpenCode 本機 Skills 收藏庫。所有 skill 皆為 MIT 授權，適用於 op
 | `mate-engine` | Mate Engine（免費輕量桌面寵物 / Desktop Mate 替代品）資訊與檔案下載（唯一來源：https://github.com/shinyflvre/Mate-Engine） | 無（下載 GitHub Release ZIP 後執行 `MateEngineX.exe`） |
 | `browser-control` | Drive 使用者既有的 Chromium 瀏覽器（確定性 Playwright：inspect/act/verify、handoff 2FA/CAPTCHA、錄影、驗證過的 network capture） | `browser-control` CLI / MCP server |
 | `taipower-exam-report` | 國營事業/台電考題整份詳細解答（VLM 元件抽取 + SPICE 模擬 + 官方答案比對） | Python venv：Qwen2.5-VL（CUDA）+ ngspice/PySpice（Windows） |
+| `hcl-notes-forward` ⚠️ | HCL Notes 公布函自動轉寄＋信箱匯出分析／讀取加密信件（**僅限本台專屬電腦，預設不安裝**） | 本機 HCL Notes client + 截圖/OCR 自動化（Windows） |
 
 ## 安裝
 
@@ -53,7 +54,7 @@ python3 -m venv .venv
 
 > 註：repo 內容同時適用 Windows（PowerShell 5.1，`py` launcher）與 macOS。`md-to-pdf` 已內建中文字體自動偵測，macOS 使用 STHeiti、Windows 使用微軟正黑體（msjh.ttc）。
 
-> ⚠️ 已移除 Skill：**`hcl-notes-forward`**（HCL Notes 公布函自動轉寄，需本機 HCL Notes client + 截圖/OCR 自動化，2026-09 移除）— 此 skill 本機**預設不安裝**；需要者請自 GitHub 歷史 commit 取回，不隨本收藏庫預設部署。
+> ⚠️ **預設不安裝 Skill**：**`hcl-notes-forward`**（HCL Notes 公布函自動轉寄 + 信箱匯出分析／讀取加密信件）是**本台專屬電腦的 skill**，僅此台機器需要安裝。GitHub 上**預設不安裝**此 skill；其他台若要使用**必須人工指定安裝**（手動將 `hcl-notes-forward/` 資料夾複製到 `~/.config/opencode/skills/`），不會隨收藏庫自動部署。
 
 ## 依賴／平台總覽
 
