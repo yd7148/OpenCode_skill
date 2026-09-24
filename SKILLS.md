@@ -37,6 +37,8 @@
 | [yt-batch-download](#26-yt-batch-download) | 批次下載 YouTube 影片（1080p 最高畫質），支援自訂檔名、cooki |
 | [yt-upload](#27-yt-upload) | 透過 Playwright 操作 YouTube Studio，將本機影片上傳並 |
 | [mate-engine-anim-patch](#28-mate-engine-anim-patch) | 擴充已編譯 Unity 的 Mate Engine X 動作數量（改寫 DLL 內 |
+| [browser-control](#29-browser-control) | Drive the user's existing Chromium-family browser with determin |
+| [taipower-exam-report](#30-taipower-exam-report) | 台電/國營事業考題整份詳細解答（VLM 元件抽取 + SPICE + 官方答案） |
 
 ---
 
@@ -495,5 +497,35 @@ patch MateEngine 動畫計數 / mate engine anim patch。
 - - 工具：`matedlltools`（dnfile+dncil）、`unitypy`、`cecil\PatchField.exe`、csc → 皆在
   `C:\Users\USER\AppData\Local\Temp\opencode\` 下（見 SKILL.md）。
 - - **Husbando 模式**僅 9 個 HUS_IDLE，IdleIndex≥8 clamp 屬正常；BlendTree 葉子數即為可設定上限。
+
+---
+
+## 29. browser-control
+
+**名稱**：browser-control — 瀏覽器自動化驅動（確定性 Playwright）
+
+**用途**：Drive the user's existing Chromium-family browser with deterministic Playwright. Use when asked to inspect, automate, test, or interact with a visible browser tab; continue an authenticated browser workflow; handle 2FA, passkeys, CAPTCHAs, or payment confirmation; record browser behavior; or capture an authenticated network flow.
+
+**摘要**：
+- Browser Control 是 **driver 而非 agent**：由呼叫的 agent 決定做什麼，Browser Control 在使用者可見的瀏覽器中執行確定性 Playwright 程式碼。
+- 核心迴圈：**inspect, act, verify** — 先 inspect 真實頁面再選 locator，用最窄的穩定控制元件行動，最後用 URL 或重新讀頁驗證結果。
+- 經典驗證流程：採用（adopt）既有已登入分頁 → 註冊 `handoff` 人類提示（WebAuthn / 2FA / CAPTCHA / 付款）→ 完成後獨立驗證已驗證的目的端點。
+- 支援 named session 續接、read-only session、`snapshot()` / `screenshotDiff()` 視覺回歸、authenticated network capture（HAR + secrets redaction）、錄影（CDP / tab capture，可含音訊）與 flight-recorder。
+- 安全性：阻擋會破壞共享瀏覽器狀態的 CDP 指令（瀏覽器關閉、清 cookie/cache）；破壞性 UI 工作採「read, confirm, verify」兩階段流程。
+
+---
+
+## 30. taipower-exam-report
+
+**名稱**：taipower-exam-report — 台電/國營事業考題整份詳細解答
+
+**用途**：Use when the user asks to generate a complete detailed answer report (整份考題詳細解答) for 國營事業/台電 exam PDFs from OCR-extracted questions, or build 電路學/電子學 circuit-diagram solutions from VLM component extraction + SPICE simulation + official answer matching. Covers the Qwen2.5-VL-7B pipeline (vlm_auto_pipeline.py / vlm_auto_pipeline_113.py), SP topology back-inference (resistor_sp.py), the markdown report generators (build_full_exam.py / build_full_exam_113.py), and two-year support (113/114). Use for naming report files "*- NN 年經濟部所屬事業機構新進職員甄試試題.md" and syncing to GitHub.
+
+**摘要**：
+- 端到端流程：OCR 考題 →（電路圖）Qwen2.5-VL-7B 元件抽取 → 由數值+官方答案反推 SP 拓樸 → ngspice/PySpice 模擬 → verdict（PASS/REVIEW/SIM-ERR）→ 併入逐題權威內容產生整份詳細解答 markdown。
+- 支援 **113 / 114 兩年度**（電機、電路學/電子學）：`vlm_auto_pipeline.py`（114）／`vlm_auto_pipeline_113.py`（113），`build_full_exam.py`／`build_full_exam_113.py` 報告產生器，`verify_full_exam_113.py` 驗證器。
+- 113 舊 `完整解答.md` 有 9 題答案標頭錯誤（Q3/Q4/Q11/Q21/Q22/Q24/Q28/Q33/Q34）；權威來源一律是官方解答 PDF（`answers_113.json`）。
+- 環境陷阱：PySpice 需 `os.add_dll_directory('C:\ngspice\Spice64_dll\dll-vs')`；**永不**直接 `ngspice -b`（~60s 後 hang），一律走 PySpice `circuit.simulator()`；先 import torch 再 import HF/PySpice；輸出 stdout 轉 utf-8。
+- 已知限制：VLM 拓樸判讀不穩 → 多數題落 REVIEW/NO-CIRCUIT 屬設計；尚未實作 BJT/zener/AC phasor 模型。
 
 ---

@@ -1,6 +1,6 @@
 ---
 name: video-2x-speed
-description: Convert a recorded video to 200% playback speed (or arbitrary 0.5x–100x) with ffmpeg, keeping the same resolution and fps, using Intel GPU (h264_qsv) and audio via atempo. Also supports cropping dead black bands (e.g. lecture captures: keep left white content, drop right black area) combined with the speed change in one pass. Encodes the correct speed without the classic `-t`-placement pitfall that silently produces a non-sped file. Use when asked to "加速影片", "轉成2倍速", "200% 播放速度", "倍速播放", "speed up video", "裁切黑邊", "切除黑色部分", or to produce a 2x/cropped copy of a downloaded .mp4.
+description: 'Convert a recorded video to 200% playback speed (or arbitrary 0.5x–100x) with ffmpeg, keeping the same resolution and fps, using Intel GPU (h264_qsv) and audio via atempo. Also supports cropping dead black bands (e.g. lecture captures: keep left white content, drop right black area) combined with the speed change in one pass. Encodes the correct speed without the classic `-t`-placement pitfall that silently produces a non-sped file. Use when asked to "加速影片", "轉成2倍速", "200% 播放速度", "倍速播放", "speed up video", "裁切黑邊", "切除黑色部分", or to produce a 2x/cropped copy of a downloaded .mp4.'
 license: MIT
 compatibility: opencode
 metadata:
@@ -217,81 +217,6 @@ $lines = @("file 'seg0.mp4'", ... "file 'seg4.mp4'")
   `1920x1080 60 fps`, audio `aac 44100 Hz ~127 kb/s`.
 - Deliverable filename: `<video名>-2x.mp4` (append `-2x` to the exact source base name).
 
-## Full-file QSV batch variant (verified 2026-09-17, 13 videos / ~37 h source)
-
-When a **single long-running process** can be left running (launched in the background), you do NOT
-need the segmented + concat approach above. Encode each whole file in TWO passes + mux — simpler, no
-`_2x_work\` segments, no corrupt-segment resume handling. This was verified on a machine with
-**Intel UHD 770 only (no NVIDIA)**, Python 3.13 (`py`).
-
-- ffmpeg build used: **v9.0 essentials (gpl)** at
-  `C:\Users\N000149839\AppData\Local\Temp\opencode\bin\ffmpeg.exe` (+ `ffprobe.exe`), copied from
-  `D:\80-Opnecode\Workspace\_maidate_work\ffmpeg_pkg\ffmpeg-9.0-essentials_build\bin\`.
-- Encoder settings: `-c:v h264_qsv -preset veryfast -global_quality 24`, filter
-  `crop=1440:1080:0:0,setpts=PTS/2,fps=30`, audio `atempo=2.0` `aac -b:a 192k`.
-- Output naming for the n8n/tvdi course projects: **`<name>_裁切2倍速.mp4`** next to the source
-  (note: underscore + 「裁切2倍速」, not `-2x`).
-
-### Three steps (per video)
-
-```powershell
-$ff = "C:\Users\N000149839\AppData\Local\Temp\opencode\bin\ffmpeg.exe"
-# pass 1: video only (crop + 2x + QSV)
-& $ff -y -hide_banner -loglevel error -i in.mp4 -an `
-    -vf "crop=1440:1080:0:0,setpts=PTS/2,fps=30" `
-    -c:v h264_qsv -preset veryfast -global_quality 24 "$tmp\_p1.mp4"
-# pass 2: audio only (2x + AAC)
-& $ff -y -hide_banner -loglevel error -i in.mp4 -vn `
-    -af atempo=2.0 -c:a aac -b:a 192k "$tmp\_p2.m4a"
-# mux (copy, no re-encode)
-& $ff -y -hide_banner -loglevel error -i "$tmp\_p1.mp4" -i "$tmp\_p2.m4a" `
-    -map 0:v -map 1:a -c copy -shortest "out_裁切2倍速.mp4"
-```
-
-Keep pass1/pass2 under `C:\Users\<user>\AppData\Local\Temp\opencode` and delete after muxing.
-
-### Measured throughput (UHD 770 QSV, 1080p30 source)
-
-| Source | Video pass (→ source/2) | Audio pass | Total |
-|--------|------------------------|-----------|-------|
-| 5410s (90 min) | 231 s | 56 s | 288 s |
-| 11325s (3.1 h) | 534 s | 149 s | 688 s |
-| 13120s (3.6 h) | 598 s | 150 s | 755 s |
-| 13370s (3.7 h) | 603 s | 127 s | 734 s |
-
-Video pass ≈ **11–12x realtime**, audio pass ≈ **100–150x**. Whole 13-video (~37 h source) batch
-finished in roughly **2.5 h** wall clock, run sequentially.
-
-### Resumable Python batch driver (used)
-
-- Iterate `sorted(os.listdir(VDIR))` for `*.mp4` that do not contain `裁切` or `2倍速`;
-  **skip if output exists and >1 MB** (safe re-run).
-- Probe source duration with ffprobe; after mux verify the OUTPUT: video & audio durations present,
-  `abs(video-audio) < 5`, `abs(video - source/2) < 30`. Print `OK`/`CHECK` per video.
-- Launch in the background; a tool call may report `Unknown: ChildProcess.kill` while the process
-  actually kept running — confirm with
-  `Get-CimInstance Win32_Process -Filter "Name='python.exe'"` that only ONE instance exists
-  (a second `Start-Process` would start a duplicate).
-- `Late SEI is not implemented` h264 decoder warnings are harmless (same as the NVENC path).
-
-### When to prefer this vs. the segmented batch mode
-
-- Full-file: one stable background process is available → fewest moving parts, no concat.
-- Segmented (`_2x_work\`): the environment kills processes on a short watchdog → keep calls bounded.
-
-## Crop boundary by column-mean (simple variant, verified 2026-09-17)
-
-For the tvdi/Meet 1920-wide layout, `colmean > 30` over sampled frames is enough: the content
-right edge is the last bright column. Confirmed **x = 1440** on all 13 videos (and `top=67`,
-`bottom=1006` dark rows, which are KEPT — crop only the width → `crop=1440:1080:0:0`).
-
-```python
-grey = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-bright = np.where(grey.mean(axis=0) > 30)[0]      # last bright column = content right edge
-width = int(bright.max() + 1)                     # -> 1440
-```
-Sample ~8 timestamps spread over the file; take the majority (and ignore intro/loading frames).
-
 ## Verification of a working 2x file
 - Total duration = source duration / 2 (± 0.5s concat tolerance).
 - Frame rate still 60fps, resolution unchanged, audio present (atempo keeps pitch).
@@ -315,10 +240,8 @@ Sample ~8 timestamps spread over the file; take the majority (and ignore intro/l
 - Work in a persistent `_<video>_work\` folder, not the OS temp dir (it gets wiped).
 
 ## Deliverables checklist
-- [ ] Output in the target folder (`<video名>-2x.mp4`, or `<name>_裁切2倍速.mp4` for the
-      n8n/tvdi course projects), `Duration == source/2`, correct resolution
-      (source res, or cropped W×H if crop was requested), 30/60fps, audio;
-      verify BOTH streams (video & audio) have matching durations
+- [ ] `<video名>-2x.mp4` in the target folder, `Duration == source/2`, correct resolution
+      (source res, or cropped W×H if crop was requested), 30/60fps, audio
 - [ ] If cropping: boundary verified identical across ≥2 sampled frames; output right-edge columns bright
 - [ ] Batch jobs: every file probed at the end (`bad=0`), not just the last one
 - [ ] Segments + concat list left in `_<video>_work\` (or `_2x_work\<base>\`) for re-concat

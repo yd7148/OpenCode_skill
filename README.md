@@ -36,6 +36,8 @@ OpenCode 本機 Skills 收藏庫。所有 skill 皆為 MIT 授權，適用於 op
 | `meeting-transcript-summary` | 原始時間戳會議逐字稿彙總成詳盡繁中主管會議紀錄 | 無（opencode 內建工具） |
 | `pdf-reader` | 讀取 PDF（文字抽取 / 掃描 OCR）輸出繁中 Markdown 摘要 | Python venv：PyMuPDF、RapidOCR、opencc |
 | `mate-engine-anim-patch` | 擴充已編譯 Unity 的 Mate Engine X 動作數量（改寫 DLL 中 Idle/Dance 輪播常數，讓 BlendTree 全部動畫啟用） | Python（dnfile/dncil + UnityPy）+ Mono.Cecil + 內建 csc（Windows） |
+| `browser-control` | Drive 使用者既有的 Chromium 瀏覽器（確定性 Playwright：inspect/act/verify、handoff 2FA/CAPTCHA、錄影、驗證過的 network capture） | `browser-control` CLI / MCP server |
+| `taipower-exam-report` | 國營事業/台電考題整份詳細解答（VLM 元件抽取 + SPICE 模擬 + 官方答案比對） | Python venv：Qwen2.5-VL（CUDA）+ ngspice/PySpice（Windows） |
 
 ## 安裝
 
@@ -57,8 +59,9 @@ python3 -m venv .venv
 - **純 Python（跨平台）**：`taobao-order-extract`（openpyxl）、`taobao-cost-fill`（openpyxl）、`md-to-pdf`（Pillow）、`tts`（edge-tts）、`taipower-exam-solver`（pymupdf）、`pdf-reader`（PyMuPDF + RapidOCR + opencc）
 - **需額外系統工具**：`dwg-to-dxf`（ODA Converter）、`video-2x-speed`（ffmpeg）、`yt-batch-download`（ffmpeg + deno）、`yt-upload`（Playwright）、`takeout-exif-merge`（ExifTool）、`hcl-notes-forward`（HCL Notes client + RapidOCR，Windows）
 - **需 COMSOL 環境**：`comsol-mcp`（本機 COMSOL 6.4 + COMSOL MCP server，Windows）、`comsol-linsolver-benchmark`（COMSOL 6.4 comsolbatch + nvidia-smi，Windows）、`comsol-gpu-env`（COMSOL 6.4 + 系統 CUDA 12.9.1，RTX 5080；GUI 操作用 opencode Computer Use）
-- **重型機器學習（每個 skill 有專用 venv）**：`video2text`、`pdf-exam-extractor`、`video-class-pipeline`
+- **重型機器學習（每個 skill 有專用 venv）**：`video2text`、`pdf-exam-extractor`、`video-class-pipeline`、`taipower-exam-report`
 - **需 WebUI 環境**：`sd-webui-vae-fix`（用 webui 內建 Python：torch + safetensors，抽取本機大檢查點的 VAE 並以 `/sdapi/v1` API 驗證）
 - **需 npm 全域工具**：`open-computer-use`（`npm i -g open-computer-use`，macOS 14+ 需授權 Accessibility + Screen Recording）
 - **瀏覽器自動化 + OCR**：`cv-job-application`（Playwright CDP + ddddocr + EasyOCR，沿用 Chromium 設定檔保存登入，Windows）
+- **瀏覽器自動化**：`browser-control`（browser-control CLI / MCP，驅動使用者既有的 Chromium 瀏覽器，支援 handoff、錄影與 network capture）
 - **已編譯 Unity 修改**：`mate-engine-anim-patch`（以 dnfile/dncil 反組譯 + UnityPy 驗證 BlendTree，Mono.Cecil 重寫 IL 常數，Windows）
