@@ -323,6 +323,11 @@ path. Status: switching 2026-09-21; the old engine stays behind `--engine` until
   duration, HALLU-regex hit count, and a proper-noun spot-check for the session (model
   names / API terms / `楢案→檔案`-style garble). Only switch the default once breeze wins
   or ties on those.
+- **Reference code (this skill folder)**: `asr/whisper_transcribe.py` (engine-aware,
+  schema-preserving drop-in for `pipeline/whisper_transcribe.py`) and
+  `asr/asr_ab_eval.py` (A/B benchmark printing RTF/segs/last_end/hallu/preview per
+  engine; one failing engine never stops the run). On the RTX host: `git pull`, copy
+  both into `pipeline/`, then run the Blackwell smoke test + A/B eval.
 
 ## Workflow A — batch analysis
 
