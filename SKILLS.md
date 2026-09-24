@@ -535,3 +535,61 @@ patch MateEngine 動畫計數 / mate engine anim patch。
 - 相關 skill：`mate-engine-anim-patch`（擴充已編譯 Mate Engine X 的 Idle/Dance 動畫輪播數量；本 skill 下載後取得 `Assembly-CSharp.dll` 即可套用）。
 
 ---
+
+## 附錄：OpenCode 本機環境設定（LSP）
+
+本機 OpenCode（Desktop App 1.18.x）已啟用 **LSP 精準開啟（方案 2）**：僅啟用
+`typescript`、`pyright`、`yaml-ls`、`bash` 四個語言伺服器。啟用後 agent 可獲得
+**`lsp` 工具**（goToDefinition、findReferences、hover、documentSymbol、workspaceSymbol、
+goToImplementation、callHierarchy…）與**語言伺服器診斷回饋**（診斷訊息自動流入 agent loop）。
+
+### 啟用開關（兩個都要）
+
+| 開關 | 設定 | 位置 |
+|------|------|------|
+| ① `lsp` 工具 | 使用者層級環境變數 `OPENCODE_EXPERIMENTAL_LSP_TOOL=true`（或 `OPENCODE_EXPERIMENTAL=true`） | 系統內容 → 環境變數 |
+| ② LSP server | `"lsp": { ... }`（見下） | `~/.config/opencode/opencode.jsonc` |
+
+### 設定內容（方案 2：精準開啟）
+
+```jsonc
+{
+  "$schema": "https://opencode.ai/config.json",
+  "lsp": {
+    "typescript": {},
+    "pyright": {},
+    "yaml-ls": {},
+    "bash": {}
+  }
+}
+```
+
+OpenCode 在**讀到對應副檔名的檔案**且**必要條件滿足**時才啟動該伺服器（不會全載）。
+
+| LSP | 副檔名 | 必要條件 | 本機狀態 |
+|-----|--------|----------|----------|
+| typescript | .ts/.tsx/.js/.jsx/.mjs/.cjs/.mts/.cts | 該專案需有 `typescript` 依賴 | ✅ Node 22 |
+| pyright | .py/.pyi | 全域安裝 `pyright` | ✅ `npm i -g pyright`（已裝） |
+| yaml-ls | .yaml/.yml | 自動下載 yaml-language-server | ✅ 自動下載 |
+| bash | .sh/.bash/.zsh/.ksh | 自動下載 bash-language-server | ✅ 自動下載 |
+
+### 安裝／維護
+
+```bash
+npm i -g pyright                                     # pyright（本機已安裝）
+cd <某個 TS/JS 專案> && npm i -D typescript          # typescript LSP 吃「專案自身」的 typescript 依賴
+```
+
+改完 `opencode.jsonc` 或環境變數後，需**完全重啟** OpenCode Desktop App 才生效。
+
+### 其他設定選項（參考）
+
+- `"lsp": true` → 全開（所有內建 server）
+- `"lsp": false` → 全關（預設值）
+- `"lsp": { "typescript": { "disabled": true } }` → 全開但排除特定 server
+- 自訂 server：`command` / `extensions` / `env` / `initialization` / `disabled`
+
+> **未啟用的理由**：`jdtls`（Java）需 JDK 21+，而本機僅有 Java 8（HCL Notes 用）不適用；
+> gopls / rust / lua-ls / ruby-lsp / php intelephense / clangd 等對應工具鏈未安裝，用不到就不自動下載，
+> 避免浪費記憶體與啟動時間（官方 Best Practices 建議不要無腦全開）。
+> `.ps1`（PowerShell）與 `.md` 目前沒有對應內建 LSP。
