@@ -83,6 +83,7 @@ Add-Type 'using System;using System.Runtime.InteropServices;public class W{[DllI
 - 每封信必須看到 `系統已完成轉發作業` / 完成訊息，才會按刪除。
 - 刪除只在完成訊息後執行；若未偵測到完成訊息，腳本停止且不刪原信。
 - `--restart-every 5` 預設每成功 5 封重啟 Notes，避免文件分頁堆疊造成列表切換失敗。
+- `--scan-start-y 220` 預設從較上方的清單區開始掃描；若 dry-run 漏抓，可用 `--scan-start-y 180` 或其他值校正。
 - 其他電腦可用 `--notes-exe` 指定 Notes 路徑；若 DPI/視窗布局不同，先跑 `--dry-run --debug` 校正座標。
 
 ### 打包成 EXE
@@ -226,6 +227,7 @@ Add-Type 'using System;using System.Runtime.InteropServices;public class W{[DllI
 - **完成訊息實測**：「系統已完成轉發作業!」確定 (982,590) 與速查一致；出現此訊息即代表轉寄已送出。
 - **刪除原信**：完成訊息出現後才回列表刪除；重新 OCR 定位列 → 單擊選列 → Delete；實測 Notes 11 未彈確認對話框即消失；刪後再 OCR 確認目標列消失、鄰近新信仍在（未誤刪）。
 - **2026-09-25 實測補強**：大量處理時 Notes 文件分頁會堆疊，可能切不回 `$BySender`；改用每批 4-5 封重啟 Notes，再從工作區開信箱回 `$BySender`，穩定完成剩餘紅字。成功寄出後刪除原信，信箱未讀數會下降。
+- **2026-09-25 y 起點補強**：公布函系統通知群組若剛好在清單頂部，第一封未讀可能落在視窗 y≈250；舊版從 y=350 掃描會漏判。新版 `hcl_notes_forwarder.py` 預設 `--scan-start-y 220`，且優先用 `capture_win.ps1` 抓 Notes 視窗本身。
 
 ## 實測例：主管獎勵金統整（2026-09-24，信箱匯出＋加密信件讀取兌現）
 

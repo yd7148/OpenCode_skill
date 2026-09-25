@@ -100,6 +100,7 @@ cd D:\80-Opnecode\Projects\OpenCode_skill
 | `--max-messages 30` | 最多處理 30 封 |
 | `--restart-every 5` | 每成功 5 封重啟 Notes |
 | `--no-delete` | 成功轉寄後不刪除原信 |
+| `--scan-start-y 220` | 從 Notes 視窗內 y=220 開始掃描紅色未讀列；若 dry-run 漏抓，可調整此值 |
 | `--recipient "群組名稱"` | 指定收件群組 |
 | `--notes-exe "路徑"` | 指定 Notes 執行檔路徑 |
 
@@ -157,4 +158,4 @@ cd OpenCode_skill
 - 如果 Notes 畫面被其他視窗遮住，可能會點擊失敗。
 - 如果 DPI、解析度或 Notes 版面不同，必須先 dry-run 校正。
 - 若工具停下來，通常代表它沒有確認到完成訊息；這種情況下原信不會被刪除。
-
+- 2026-09-25 補強：工具會優先抓取 HCL Notes 視窗本身，並從較上方的清單位置開始掃描，避免公布函列在 y=250 左右時漏判。

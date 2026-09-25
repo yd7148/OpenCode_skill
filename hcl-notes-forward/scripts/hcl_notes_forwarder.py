@@ -145,6 +145,34 @@ def screenshot_rect(rect: WindowRect) -> Image.Image:
     return ImageGrab.grab(bbox=(rect.left, rect.top, rect.right, rect.bottom)).convert("RGB")
 
 
+def capture_notes_window(output_dir: Path, name: str, rect: WindowRect) -> Image.Image:
+    skill_dir = Path(__file__).resolve().parents[1]
+    capture_script = skill_dir / "scripts" / "capture_win.ps1"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_path = output_dir / name
+
+    if capture_script.exists():
+        completed = subprocess.run(
+            [
+                "powershell",
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                str(capture_script),
+                "nlnotes",
+                str(output_path),
+            ],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            text=True,
+        )
+        if completed.returncode == 0 and output_path.exists():
+            return Image.open(output_path).convert("RGB")
+
+    return screenshot_rect(rect)
+
+
 def screenshot_full() -> Image.Image:
     return ImageGrab.grab().convert("RGB")
 
@@ -168,8 +196,8 @@ def red_black_counts(image: Image.Image, y: int) -> tuple[int, int, int]:
     return red, black, blue
 
 
-def find_first_unread_row(image: Image.Image) -> tuple[int, int, int] | None:
-    for y in range(350, min(750, image.height - 20), 25):
+def find_first_unread_row(image: Image.Image, scan_start_y: int) -> tuple[int, int, int] | None:
+    for y in range(scan_start_y, min(750, image.height - 20), 10):
         red, black, blue = red_black_counts(image, y)
         if red > 120 and red > black * 0.8 and blue < 120:
             return y + 10, red, black
@@ -265,11 +293,9 @@ def process_visible_messages(args: argparse.Namespace) -> int:
         _, hwnd, _ = start_notes(args.notes_exe)
         focus_window(hwnd)
         rect = get_window_rect(hwnd)
-        image = screenshot_rect(rect)
-        if args.debug:
-            save_debug(image, output_dir, f"list_{index:03d}.png")
+        image = capture_notes_window(output_dir, f"list_{index:03d}.png", rect)
 
-        row = find_first_unread_row(image)
+        row = find_first_unread_row(image, args.scan_start_y)
         if not row:
             print("No visible unread red public-notice rows remain.")
             break
@@ -325,6 +351,7 @@ def parse_args(argv: Iterable[str]) -> argparse.Namespace:
     parser.add_argument("--restart-every", type=int, default=5, help="Restart Notes after this many successful messages; 0 disables.")
     parser.add_argument("--completion-timeout", type=int, default=14, help="Seconds to wait for the completion dialog.")
     parser.add_argument("--output-dir", default=str(DEFAULT_OUTPUT_DIR), help="Debug screenshot/output directory.")
+    parser.add_argument("--scan-start-y", type=int, default=220, help="Window-relative y coordinate where row scanning starts.")
     parser.add_argument("--dry-run", action="store_true", help="Detect rows but do not click, send, or delete.")
     parser.add_argument("--debug", action="store_true", help="Save screenshots useful for calibration.")
     parser.add_argument("--no-delete", dest="delete_after_forward", action="store_false", help="Forward only; do not delete originals.")
