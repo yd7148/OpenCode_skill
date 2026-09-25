@@ -13,6 +13,7 @@ OpenCode 本機 Skills 收藏庫。所有 skill 皆為 MIT 授權，適用於 op
 | `taobao-order-extract` | 從淘寶訂單 Excel 提取訂單資料並比對物流重量 | Python + `openpyxl` |
 | `taobao-cost-fill` | 依訂單卡片填寫「淘寶費用計算明細」R0 樣板並存成 R1 | Python + `openpyxl` |
 | `md-to-pdf` | 將繁體中文 Markdown 渲染成排版精美的 A4 PDF | Python + Pillow + 中文字體（macOS/Windows 自動偵測） |
+| `image-to-pdf` | 將資料夾內圖片合併成單一 PDF（每頁一張、依檔名排序） | Python + Pillow |
 | `v2t-report-summary` | 彙總影片分析報告（OCR × Whisper × GitHub）成繁體中文摘要 | 無（opencode 內建工具） |
 | `video-2x-speed` | 倍速影片處理（時間軸慣例） | ffmpeg + `yt-dlp` |
 | `video2text` | 分析錄影影片 → 雙語 Markdown 報告 + 關鍵幀 PDF | Python venv：optimum-intel、faster-whisper、rapidocr-onnxruntime 等 |
@@ -60,7 +61,7 @@ python3 -m venv .venv
 ## 依賴／平台總覽
 
 - **無依賴**：`comsol-analyzer`、`v2t-report-summary`、`meeting-transcript-summary`、`mate-engine`、`opencode-session-auto-name`
-- **純 Python（跨平台）**：`taobao-order-extract`（openpyxl）、`taobao-cost-fill`（openpyxl）、`md-to-pdf`（Pillow）、`tts`（edge-tts）、`taipower-exam-solver`（pymupdf）、`pdf-reader`（PyMuPDF + RapidOCR + opencc）
+- **純 Python（跨平台）**：`taobao-order-extract`（openpyxl）、`taobao-cost-fill`（openpyxl）、`md-to-pdf`（Pillow）、`image-to-pdf`（Pillow）、`tts`（edge-tts）、`taipower-exam-solver`（pymupdf）、`pdf-reader`（PyMuPDF + RapidOCR + opencc）
 - **需額外系統工具**：`dwg-to-dxf`（ODA Converter）、`video-2x-speed`（ffmpeg）、`yt-batch-download`（ffmpeg + deno）、`yt-upload`（Playwright）、`takeout-exif-merge`（ExifTool）
 - **需 COMSOL 環境**：`comsol-mcp`（本機 COMSOL 6.4 + COMSOL MCP server，Windows）、`comsol-linsolver-benchmark`（COMSOL 6.4 comsolbatch + nvidia-smi，Windows）、`comsol-gpu-env`（COMSOL 6.4 + 系統 CUDA 12.9.1，RTX 5080；GUI 操作用 opencode Computer Use）
 - **重型機器學習（每個 skill 有專用 venv）**：`video2text`、`pdf-exam-extractor`、`video-class-pipeline`、`taipower-exam-report`

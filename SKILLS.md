@@ -43,6 +43,7 @@
 | [mate-engine](#30-mate-engine) | Mate Engine（免費輕量桌面寵物）資訊與檔案下載（https://github.com/shinyflvre/Mate-Engine） |
 | [hcl-notes-forward](#31-hcl-notes-forward) ⚠️預設不安裝 | HCL Notes 公布函自動轉寄＋信箱匯出分析／讀取加密信件（僅限本台專屬電腦） |
 | [opencode-session-auto-name](#32-opencode-session-auto-name) | 讓 opencode session 標題自動以「第一個 prompt 的總結」命名（plugin 已裝全域、0 Token） |
+| [image-to-pdf](#33-image-to-pdf) | 將資料夾內圖片合併成單一 PDF（每頁一張、依檔名順序排列） |
 
 ---
 
@@ -724,3 +725,20 @@ Playwright MCP 預設按「工作區 hash」建立 profile
 **產出**：每個新 session 的標題 = 第一個 prompt 的首句總結（或進行中 todo）。
 
 - 完整安裝步驟、樣板變數對照、驗證流程與替代方案比較見本 skill 的 `SKILL.md`。
+
+---
+
+## 33. image-to-pdf
+
+**名稱**：image-to-pdf — 圖片 → 單一 PDF（每頁一張，依檔名排序）
+
+**用途**：將一個資料夾內的圖片（PNG/JPG 等）合併成單一 PDF：**每一頁一張圖片、依照檔案名稱順序排列**。使用 Pillow 離線產生，不需網路。Use when asked to "圖片轉 PDF", "圖片合併成 PDF", "每一頁一個圖片", "image to pdf", "把圖片轉成一個 PDF 檔案", or to merge screenshot/image files into a single PDF in filename order.
+
+**摘要**：
+- Python 3 + Pillow（`pip install Pillow`），核心一行：
+  `images[0].save('out.pdf', save_all=True, append_images=images[1:], resolution=150.0)`
+  （全部圖先 `.convert('RGB')` 再合併，PNG alpha 才不會留黑底。）
+- 排序：`sorted(glob.glob('*.png'))`；檔名有編號前綴（`01-`、`02-`…）即為頁面順序。
+- 驗證：`Get-Item out.pdf`（>0 KB）；頁數 = 圖片張數。
+
+---
