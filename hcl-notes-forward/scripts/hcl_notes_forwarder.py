@@ -34,8 +34,10 @@ USER32 = ctypes.windll.user32
 SW_RESTORE = 9
 MOUSEEVENTF_LEFTDOWN = 0x0002
 MOUSEEVENTF_LEFTUP = 0x0004
+VK_CONTROL = 0x11
 VK_RETURN = 0x0D
 VK_DELETE = 0x2E
+VK_V = 0x56
 
 
 class RECT(ctypes.Structure):
@@ -134,11 +136,43 @@ def click(x: int, y: int) -> None:
     time.sleep(0.3)
 
 
+def double_click(x: int, y: int) -> None:
+    click(x, y)
+    time.sleep(0.12)
+    click(x, y)
+
+
 def press(vk: int) -> None:
     USER32.keybd_event(vk, 0, 0, 0)
     time.sleep(0.05)
     USER32.keybd_event(vk, 0, 2, 0)
     time.sleep(0.2)
+
+
+def key_down(vk: int) -> None:
+    USER32.keybd_event(vk, 0, 0, 0)
+
+
+def key_up(vk: int) -> None:
+    USER32.keybd_event(vk, 0, 2, 0)
+
+
+def set_clipboard_text(text: str) -> None:
+    escaped = text.replace("'", "''")
+    subprocess.run(
+        ["powershell", "-NoProfile", "-Command", f"Set-Clipboard -Value '{escaped}'"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        text=True,
+    )
+    time.sleep(0.2)
+
+
+def paste_from_clipboard() -> None:
+    key_down(VK_CONTROL)
+    press(VK_V)
+    key_up(VK_CONTROL)
+    time.sleep(0.5)
 
 
 def screenshot_rect(rect: WindowRect) -> Image.Image:
@@ -270,6 +304,31 @@ def click_recipient_dialog(recipient: str) -> None:
     click(1493, 525)  # OK
 
 
+def is_compose_window(title: str) -> bool:
+    return "新訊息" in title or "New Message" in title
+
+
+def is_bysender_view(title: str) -> bool:
+    return "$BySender" in title
+
+
+def fill_recipient_and_send(rect: WindowRect, recipient: str) -> None:
+    # Direct Forward may open a compose memo directly instead of the name picker.
+    proc = notes_process()
+    if proc:
+        _, hwnd, _ = proc
+        focus_window(hwnd)
+    click(rect.left + 320, rect.top + 218)
+    set_clipboard_text(recipient)
+    proc = notes_process()
+    if proc:
+        _, hwnd, _ = proc
+        focus_window(hwnd)
+    click(rect.left + 320, rect.top + 218)
+    paste_from_clipboard()
+    click(rect.left + 64, rect.top + 130)
+
+
 def delete_selected_original() -> None:
     press(VK_DELETE)
     time.sleep(0.8)
@@ -285,14 +344,36 @@ def ensure_bysender_tab(rect: WindowRect) -> None:
     time.sleep(1)
 
 
+def open_message_from_row(rect: WindowRect, y: int, notes_exe: str) -> bool:
+    double_click(rect.left + 520, rect.top + y)
+    time.sleep(2)
+    _, _, title = start_notes(notes_exe)
+    if not is_bysender_view(title):
+        return True
+
+    click(rect.left + 520, rect.top + y)
+    press(VK_RETURN)
+    time.sleep(2)
+    _, _, title = start_notes(notes_exe)
+    return not is_bysender_view(title)
+
+
 def process_visible_messages(args: argparse.Namespace) -> int:
     processed = 0
     output_dir = Path(args.output_dir)
 
     for index in range(args.max_messages):
-        _, hwnd, _ = start_notes(args.notes_exe)
+        _, hwnd, title = start_notes(args.notes_exe)
         focus_window(hwnd)
         rect = get_window_rect(hwnd)
+        if is_compose_window(title):
+            if args.dry_run:
+                print("Current window is an unsent compose memo.")
+                processed += 1
+                continue
+            print("STOP: current window is an unsent compose memo; it may be a blank draft, so nothing was forwarded or deleted.")
+            break
+
         image = capture_notes_window(output_dir, f"list_{index:03d}.png", rect)
 
         row = find_first_unread_row(image, args.scan_start_y)
@@ -306,17 +387,23 @@ def process_visible_messages(args: argparse.Namespace) -> int:
             processed += 1
             continue
 
-        click(rect.left + 520, rect.top + y)
-        press(VK_RETURN)
-        time.sleep(2)
+        if not open_message_from_row(rect, y, args.notes_exe):
+            print("STOP: could not open the selected message; nothing was forwarded or deleted.")
+            break
 
         _, hwnd, _ = start_notes(args.notes_exe)
         focus_window(hwnd)
         rect = get_window_rect(hwnd)
-        click(rect.left + 248, rect.top + 120)  # Direct Forward
+        click(rect.left + 277, rect.top + 120)  # Direct Forward
         time.sleep(1.5)
 
-        click_recipient_dialog(args.recipient)
+        _, hwnd, title = start_notes(args.notes_exe)
+        focus_window(hwnd)
+        rect = get_window_rect(hwnd)
+        if is_compose_window(title):
+            fill_recipient_and_send(rect, args.recipient)
+        else:
+            click_recipient_dialog(args.recipient)
         if not wait_for_completion_dialog(args.completion_timeout, output_dir, args.debug):
             print("STOP: did not see the completion dialog; original message was not deleted.")
             break
