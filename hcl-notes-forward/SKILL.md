@@ -2,12 +2,12 @@
 name: hcl-notes-forward
 description: 自動化 HCL Notes（本機 Windows client）的「公布函系統通知」未讀郵件批次處理（直接轉寄＋刪原信）與「信箱整批匯出分析／讀取加密個人機密信件數值」（無 JNI，全程 GDI 截圖 + RapidOCR + 螢幕絕對座標點擊）。當你被要求「轉寄公布函」「批次處理 Notes 未讀通知」「直接轉寄給群組」「匯出/分析 Notes 信箱」「讀取加密信件金額」時使用。
 license: MIT
-compatibility: opencode
 metadata:
   audience: opencode agents
   workflow: hcl-notes-ui-automation
   languages: zh-TW
   os: win32
+  compatibility: opencode
 ---
 
 # hcl-notes-forward — HCL Notes 公布函直接轉寄自動化
@@ -28,8 +28,8 @@ metadata:
 | config | `C:\lotus\Notes\notes.ini`：`MailServer=CN=skms03/O=fpg`、`MailFile=mail\N000149839.nsf` |
 | 使用者 | `CN=N000149839 劉士禎/OU=03/O=Fpg`，ID `D:\90-Notes ID\V035100劉士禎_N000149839-R2.id` |
 | Notes 主視窗 | 位置**不固定**（例 (761,21) 1121x839；(1000,0) 920x940），**每次 `GetWindowRect` 現量**，pid 由 `Get-Process nlnotes` 取得 |
-| OCR venv | `D:\80-Opnecode\workspace\_maidate_work\venv\Scripts\python.exe`（含 Pillow + rapidocr_onnxruntime） |
-| 工具鏈 | `capture_win.ps1`（視窗截圖）、`ocr_screen2.py`（RapidOCR）、`crop.py`、`click2.ps1`、`zclean.ps1`、`winlist.ps1`、`rowclass.py`（逐列紅/黑分類）——位於本 skill 的 `scripts\` |
+| OCR venv | `D:\80-Opnecode\workspace\_maidate_work\venv\Scripts\python.exe`（含 Pillow + rapidocr_onnxruntime）；可執行版最少需要 Pillow，若要 OCR 驗證完成訊息需 RapidOCR |
+| 工具鏈 | `hcl_notes_forwarder.py` / `run_hcl_notes_forwarder.cmd`（可直接批次轉寄＋刪原信）、`build_exe.ps1`（PyInstaller 打包）、`capture_win.ps1`（視窗截圖）、`ocr_screen2.py`（RapidOCR）、`crop.py`、`click2.ps1`、`zclean.ps1`、`winlist.ps1`、`rowclass.py`（逐列紅/黑分類）——位於本 skill 的 `scripts\` |
 
 ### 硬性限制（務必先知道，省得做白工）
 
@@ -63,7 +63,39 @@ Add-Type 'using System;using System.Runtime.InteropServices;public class W{[DllI
 - Notes 的**對話框（如「選取名稱」「系統已完成轉發作業」）是子視窗**，非頂層；`capture_win.ps1 nlnotes` 看不到它，需用 **GDI 全螢幕截圖**（見 scripts 範例，抓 1920x1080 desktop）再 OCR。
 - 對話框按鈕座標要「現量現用」— 每次開啟對話框後重新 OCR 定位，不要死記，因視窗位置可能變。
 
-## 工作流（逐封：開信 → 直接轉寄 → 群組 → 新增一次 → 確定 → 完成訊息 → 確定 → 離開 → 刪除原信）
+## 可直接執行的批次工具
+
+優先使用 `scripts\hcl_notes_forwarder.py` 或 `scripts\run_hcl_notes_forwarder.cmd`，這是 2026-09-25 實測流程整理出的保守執行版：
+
+```powershell
+# 偵測紅字列但不寄信/不刪信
+.\hcl-notes-forward\scripts\run_hcl_notes_forwarder.cmd --dry-run --debug
+
+# 預設：轉寄給「工三碳化矽專案組-03-全組(21)」，看到完成訊息後刪除原信
+.\hcl-notes-forward\scripts\run_hcl_notes_forwarder.cmd --max-messages 30 --debug
+
+# 只轉寄不刪除（臨時測試用）
+.\hcl-notes-forward\scripts\run_hcl_notes_forwarder.cmd --max-messages 3 --no-delete
+```
+
+預設行為：
+
+- 每封信必須看到 `系統已完成轉發作業` / 完成訊息，才會按刪除。
+- 刪除只在完成訊息後執行；若未偵測到完成訊息，腳本停止且不刪原信。
+- `--restart-every 5` 預設每成功 5 封重啟 Notes，避免文件分頁堆疊造成列表切換失敗。
+- 其他電腦可用 `--notes-exe` 指定 Notes 路徑；若 DPI/視窗布局不同，先跑 `--dry-run --debug` 校正座標。
+
+### 打包成 EXE
+
+可以打包成單一 `.exe`，建議用 PyInstaller：
+
+```powershell
+.\hcl-notes-forward\scripts\build_exe.ps1
+```
+
+輸出會在目前目錄的 `dist\hcl-notes-forwarder.exe`。打包後仍需目標電腦已安裝 HCL Notes，且第一次執行前要確認 Notes 可以正常登入信箱。
+
+## 工作流（逐封：開信 → 直接轉寄 → 群組 → 新增一次 → 確定 → 完成訊息 → 確定 → 回列表 → 刪除原信）
 
 ### 0. 前置
 1. 啟動/確認 Notes 在工作台並連線（信箱列 Inbox 數百筆正常）。
@@ -95,10 +127,12 @@ Add-Type 'using System;using System.Runtime.InteropServices;public class W{[DllI
   - 若沒出現訊息、直接落回原 memo → 轉寄可能未確認送出，需向使用者確認（無法用已傳送驗證）。
 - 按 memo **「離開」** 關閉回列表。
 
-### 5. 刪除原信（使用者允許後）
+### 5. 刪除原信（成功轉寄後預設執行）
+- 使用者已指定：以後成功轉寄後就刪除原信。這是 `hcl_notes_forwarder.py` 的預設行為。
 - 回到列表後，重新定位該列（重新 OCR），單擊選列，按 **Delete**。
 - 若出現刪除確認對話框，OCR 定位後按 **「確定/是」**。
 - 刪除後該列應從視圖消失（未讀數減少）。
+- 若沒有看到完成訊息，或列表定位不確定，**停止，不刪除**。
 
 ### 6. 驗證
 - **已傳送不可用**（直接轉寄不留副本）。只能靠：使用者於收件群組端確認，或使用者口頭確認。
@@ -154,6 +188,9 @@ Add-Type 'using System;using System.Runtime.InteropServices;public class W{[DllI
 
 | 腳本 | 用途 |
 |------|------|
+| `hcl_notes_forwarder.py` | 可直接執行的批次工具：找紅字未讀公布函、直接轉寄、驗證完成訊息、刪除原信 |
+| `run_hcl_notes_forwarder.cmd` | Windows 雙擊/命令列啟動器，優先使用本機 Python 3.13 |
+| `build_exe.ps1` | 用 PyInstaller 打包 `hcl_notes_forwarder.py` 為單一 exe |
 | `capture_win.ps1 <winName> <outPng>` | 抓指定視窗（如 nlnotes）內圖到 PNG |
 | `ocr_screen2.py <png> <ocrTxt>` | RapidOCR 中文 → 每行 `[x0-x1,y0-y1] 文字`（座標為該圖像素座標） |
 | `crop.py <src> <out> <x> <y> <right> <bottom> <scale>` | 裁切並放大（座標為原圖像素） |
@@ -187,7 +224,8 @@ Add-Type 'using System;using System.Runtime.InteropServices;public class W{[DllI
 - **雙重確認列身分**：OCR 中文常錯字，判斷列以「主旨關鍵字（如 FGES-T-SSF42）」+「日期時間（2026/09/15 11:07）」雙重比對，避免刪錯信。
 - **「離開」未必能點**：轉寄後 memo 工具列小字 OCR 認不到，點定位不准；改用 memo 分頁右上角 **X**（視窗內 ~(548,94)）或鍵盤 Escape 關閉 memo。
 - **完成訊息實測**：「系統已完成轉發作業!」確定 (982,590) 與速查一致；出現此訊息即代表轉寄已送出。
-- **刪除原信**：重新 OCR 定位列 → 單擊選列 → Delete；實測 Notes 11 未彈確認對話框即消失；刪後再 OCR 確認目標列消失、鄰近新信仍在（未誤刪）。
+- **刪除原信**：完成訊息出現後才回列表刪除；重新 OCR 定位列 → 單擊選列 → Delete；實測 Notes 11 未彈確認對話框即消失；刪後再 OCR 確認目標列消失、鄰近新信仍在（未誤刪）。
+- **2026-09-25 實測補強**：大量處理時 Notes 文件分頁會堆疊，可能切不回 `$BySender`；改用每批 4-5 封重啟 Notes，再從工作區開信箱回 `$BySender`，穩定完成剩餘紅字。成功寄出後刪除原信，信箱未讀數會下降。
 
 ## 實測例：主管獎勵金統整（2026-09-24，信箱匯出＋加密信件讀取兌現）
 

@@ -40,7 +40,7 @@ OpenCode 本機 Skills 收藏庫。所有 skill 皆為 MIT 授權，適用於 op
 | `mate-engine` | Mate Engine（免費輕量桌面寵物 / Desktop Mate 替代品）資訊與檔案下載（唯一來源：https://github.com/shinyflvre/Mate-Engine） | 無（下載 GitHub Release ZIP 後執行 `MateEngineX.exe`） |
 | `browser-control` | Drive 使用者既有的 Chromium 瀏覽器（確定性 Playwright：inspect/act/verify、handoff 2FA/CAPTCHA、錄影、驗證過的 network capture） | `browser-control` CLI / MCP server |
 | `taipower-exam-report` | 國營事業/台電考題整份詳細解答（VLM 元件抽取 + SPICE 模擬 + 官方答案比對） | Python venv：Qwen2.5-VL（CUDA）+ ngspice/PySpice（Windows） |
-| `hcl-notes-forward` ⚠️ | HCL Notes 公布函自動轉寄＋信箱匯出分析／讀取加密信件（**僅限本台專屬電腦，預設不安裝**） | 本機 HCL Notes client + 截圖/OCR 自動化（Windows） |
+| `hcl-notes-forward` | HCL Notes 公布函自動轉寄＋成功後刪除原信；也支援信箱匯出分析／讀取加密信件 | Windows + HCL Notes client + Python/Pillow；可用 PyInstaller 打包 exe |
 
 ## 安裝
 
@@ -56,7 +56,7 @@ python3 -m venv .venv
 
 > 註：repo 內容同時適用 Windows（PowerShell 5.1，`py` launcher）與 macOS。`md-to-pdf` 已內建中文字體自動偵測，macOS 使用 STHeiti、Windows 使用微軟正黑體（msjh.ttc）。
 
-> ⚠️ **預設不安裝 Skill**：**`hcl-notes-forward`**（HCL Notes 公布函自動轉寄 + 信箱匯出分析／讀取加密信件）是**本台專屬電腦的 skill**，僅此台機器需要安裝。GitHub 上**預設不安裝**此 skill；其他台若要使用**必須人工指定安裝**（手動將 `hcl-notes-forward/` 資料夾複製到 `~/.config/opencode/skills/`），不會隨收藏庫自動部署。
+> **HCL Notes 公布函自動轉寄**：`hcl-notes-forward` 已整理成可移植 skill。其他已安裝 HCL Notes 的 Windows 電腦可安裝此 skill 後使用；首次執行請先跑 `scripts\run_hcl_notes_forwarder.cmd --dry-run --debug`，確認 Notes 視窗/DPI/通訊錄群組位置一致。正式執行預設會在成功轉寄後刪除原信。
 
 ## 依賴／平台總覽
 
@@ -68,6 +68,7 @@ python3 -m venv .venv
 - **需 WebUI 環境**：`sd-webui-vae-fix`（用 webui 內建 Python：torch + safetensors，抽取本機大檢查點的 VAE 並以 `/sdapi/v1` API 驗證）
 - **需 npm 全域工具**：`open-computer-use`（`npm i -g open-computer-use`，macOS 14+ 需授權 Accessibility + Screen Recording）
 - **瀏覽器自動化 + OCR**：`cv-job-application`（Playwright CDP + ddddocr + EasyOCR，沿用 Chromium 設定檔保存登入，Windows）
+- **HCL Notes UI 自動化**：`hcl-notes-forward`（HCL Notes client + Pillow 截圖；可選 RapidOCR；成功轉寄後刪原信；可 PyInstaller 打包 exe）
 - **瀏覽器自動化**：`browser-control`（browser-control CLI / MCP，驅動使用者既有的 Chromium 瀏覽器，支援 handoff、錄影與 network capture）
 - **已編譯 Unity 修改**：`mate-engine-anim-patch`（以 dnfile/dncil 反組譯 + UnityPy 驗證 BlendTree，Mono.Cecil 重寫 IL 常數，Windows）
 

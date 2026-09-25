@@ -3,7 +3,7 @@
 本文件詳細說明本收藏庫中每支 OpenCode Skill 的功能、適用時機、運作流程與產出。
 所有 skill 皆為 **MIT 授權**，適用於 **opencode agents**，作業系統為 **Windows（PowerShell 5.1）**。
 
-> ⚠️ **預設不安裝 Skill（本台專屬）**：**`hcl-notes-forward`**（HCL Notes 公布函自動轉寄 + 信箱匯出分析／讀取加密信件）是**本台專屬電腦的 skill**，僅此台機器需要安裝。GitHub 上**預設不安裝**此 skill；其他台若要使用**必須人工指定安裝**（手動複製 `hcl-notes-forward/` 到 `~/.config/opencode/skills/`），不會隨收藏庫自動部署。詳見 §31。
+> **HCL Notes 公布函自動轉寄**：`hcl-notes-forward` 已整理成可移植 skill。其他已安裝 HCL Notes 的 Windows 電腦可安裝使用；首次執行請先用 `--dry-run --debug` 校正 Notes 視窗/DPI/通訊錄群組位置。正式執行預設會在成功轉寄後刪除原信。詳見 §31。
 
 ---
 
@@ -41,7 +41,7 @@
 | [browser-control](#28-browser-control) | Drive the user's existing Chromium-family browser with determin |
 | [taipower-exam-report](#29-taipower-exam-report) | 台電/國營事業考題整份詳細解答（VLM 元件抽取 + SPICE + 官方答案） |
 | [mate-engine](#30-mate-engine) | Mate Engine（免費輕量桌面寵物）資訊與檔案下載（https://github.com/shinyflvre/Mate-Engine） |
-| [hcl-notes-forward](#31-hcl-notes-forward) ⚠️預設不安裝 | HCL Notes 公布函自動轉寄＋信箱匯出分析／讀取加密信件（僅限本台專屬電腦） |
+| [hcl-notes-forward](#31-hcl-notes-forward) | HCL Notes 公布函自動轉寄＋成功後刪除原信；可打包 exe |
 | [opencode-session-auto-name](#32-opencode-session-auto-name) | 讓 opencode session 標題自動以「第一個 prompt 的總結」命名（plugin 已裝全域、0 Token） |
 | [image-to-pdf](#33-image-to-pdf) | 將資料夾內圖片合併成單一 PDF（每頁一張、依檔名順序排列） |
 
@@ -683,20 +683,23 @@ Playwright MCP 預設按「工作區 hash」建立 profile
 
 **名稱**：hcl-notes-forward — HCL Notes 公布函自動轉寄＋信箱匯出分析／讀取加密信件
 
-**⚠️ 安裝狀態：預設不安裝、僅限本台專屬電腦**
+**安裝狀態：可移植安裝，需 Windows + HCL Notes client**
 
-- 此 skill 是**本台專屬電腦（Windows，已安裝 HCL Notes client + 截圖/OCR 工具鏈）的專用 skill**，僅此台需要安裝。
-- GitHub 上**預設不安裝**此 skill；其他台若要使用**必須人工指定安裝**（手動將 `hcl-notes-forward/` 資料夾複製到 `~/.config/opencode/skills/hcl-notes-forward/`），不會隨收藏庫自動部署。
-- 依賴本機環境（HCL Notes 11 client、`C:\lotus\Notes\nlnotes.exe`、特定 ID 檔與 OCR venv），無 Notes client 的機器無法執行。
+- 其他 Windows 電腦只要已安裝 HCL Notes client，且使用者可正常登入信箱，就可安裝此 skill。
+- 預設 Notes launcher：`C:\lotus\Notes\notes.exe`；不同路徑可用 `--notes-exe` 指定。
+- 首次執行務必先跑 `scripts\run_hcl_notes_forwarder.cmd --dry-run --debug`，確認 DPI、視窗大小、通訊錄群組位置與預期一致。
+- 可用 `scripts\build_exe.ps1` 透過 PyInstaller 打包成 `hcl-notes-forwarder.exe`。
 
 **用途**：自動化 HCL Notes（本機 Windows client）的兩類工作：
-1. **公布函批次直接轉寄**：將信箱依寄件者($BySender)視圖中「公布函系統通知」群組的未讀信件，逐封以「直接轉寄」寄給指定群組（如「工三碳化矽專案組-03-全組(21)」），寄完刪除原信。
+1. **公布函批次直接轉寄**：將信箱依寄件者($BySender)視圖中「公布函系統通知」群組的未讀信件，逐封以「直接轉寄」寄給指定群組（如「工三碳化矽專案組-03-全組(21)」），成功轉寄後刪除原信。
 2. **信箱匯出分析 + 讀取加密個人機密信件**：將信箱整批匯出為 Structured Text（Big5）解析主旨/日期做年度分類與比例分析（如「主管獎勵金」5 封年度統整）；對 Encrypt:1 的加密信件以 UI 開啟＋OCR 讀取數值（例：2025 年度獎勵金額 360,000、所得稅 18,000、健保補充保費 5,327、合計實發 336,673）。
 
 全程不做 JNI（伺服器路徑在互動式密碼保護下封死），全部用**畫面截圖 + RapidOCR + 螢幕絕對座標點擊**的 UI 自動化。
 
 **摘要**：
 - **座標**：Notes 主視窗位置不固定（例 (761,21) 1121x839、(1000,0) 920x940），每次 `GetWindowRect` 現量；OCR/a11y 座標是視窗內座標，點擊前須＋視窗左上角轉螢幕絕對座標。
+- **可執行工具**：`scripts\hcl_notes_forwarder.py` / `scripts\run_hcl_notes_forwarder.cmd`；預設收件群組 `工三碳化矽專案組-03-全組(21)`，預設成功後刪原信，`--no-delete` 可暫時關閉刪除。
+- **打包 exe**：執行 `scripts\build_exe.ps1`，輸出 `dist\hcl-notes-forwarder.exe`；目標電腦仍需 HCL Notes 已安裝並可登入。
 - **開信**：先單擊選列確認反白，再 dblclick 或 Enter；避免誤開相鄰列（預覽窗格標題魚目混珠）。
 - **加密信件**：匯出檔不含欄位值；只能 UI 開啟＋OCR 讀數值（數字欄位可靠，中文欄位名易認錯，靠數字+匯出檔交叉驗證）。
 - **雷區**：Ctrl+W/Escape 可能觸發「文件已刪除」對話框；視圖捲動位置每次重排，需重新 OCR 現量列位置；小字(<28px)中文 OCR 幾乎必錯，用 `crop.py ... 4`（LANCZOS 4x）放大改善。
